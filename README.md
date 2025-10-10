@@ -42,22 +42,22 @@ A full-stack hotel booking web application built with PostgreSQL, Node.js/Expres
 ### Database Setup
 
 1. Create a PostgreSQL database:
-createdb nestoria_db
+```createdb nestoria_db```
 
 2. Run the schema:
-psql -d nestoria_db -f database/schema.sql
+```psql -d nestoria_db -f database/schema.sql```
 
 3. Seed the database:
-psql -d nestoria_db -f database/seed.sql
+```psql -d nestoria_db -f database/seed.sql```
 
 
 ### Backend Setup
 
 1. Navigate to backend directory:
-cd backend
+```cd backend```
 
 2. Install dependencies:
-npm install
+```npm install```
 
 3. Create `.env` file:
 ```
@@ -71,7 +71,7 @@ JWT_SECRET=your_super_secret_key
 ```
 
 4. Start the server:
-npm start
+```npm start```
 
 Backend will run on `http://localhost:5000`
 
@@ -79,16 +79,16 @@ Backend will run on `http://localhost:5000`
 ### Frontend Setup
 
 1. Navigate to frontend directory:
-cd frontend
+```cd frontend```
 
 2. Install dependencies:
-npm install
+```npm install```
 
 3. Create `.env` file:
-REACT_APP_API_URL=http://localhost:5000/api
+```REACT_APP_API_URL=http://localhost:5000/api```
 
 4. Start the development server:
-npm start
+```npm start```
 
 Frontend will run on `http://localhost:3000`
 
@@ -125,16 +125,6 @@ Frontend will run on `http://localhost:3000`
 - `GET /api/hosts/profile` - Get host profile
 - `GET /api/hosts/dashboard/stats` - Get host statistics
 
-
-## Default Test Accounts
-
-### Customer:
-- Email: dummy1@email.com
-- Password: (use the one you set during registration)
-
-### Host:
-- Email: dummy2@email.com
-- Password: (use the one you set during registration)
 
 ## Contributing
 
