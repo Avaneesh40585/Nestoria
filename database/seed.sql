@@ -185,9 +185,9 @@ INSERT INTO Hotel_Amenities_Relation (HotelID, AmenityID, Availability_hrs) VALU
 (15, 1, '24/7'), (15, 2, '24/7'), (15, 3, '24/7'), (15, 4, '8 AM - 11 PM'), (15, 5, '24/7'),
 (15, 6, '24/7'), (15, 7, '24/7'), (15, 8, '24/7'), (15, 10, '7 AM - 10 PM'), (15, 11, '3 PM - 2 AM');
 
+-- Standard amenities for all rooms (1-44)
 -- Insert Room Amenities Relations (all rooms get Wi-Fi, AC, TV, Mini Bar)
 INSERT INTO Room_Amenities_Relation (RoomID, AmenityID, Working_Status) VALUES
--- Standard amenities for all rooms (1-50)
 (1, 1, TRUE), (1, 13, TRUE), (1, 14, TRUE), (1, 15, TRUE),
 (2, 1, TRUE), (2, 13, TRUE), (2, 14, TRUE), (2, 15, TRUE),
 (3, 1, TRUE), (3, 13, TRUE), (3, 14, TRUE), (3, 15, TRUE),
@@ -231,13 +231,7 @@ INSERT INTO Room_Amenities_Relation (RoomID, AmenityID, Working_Status) VALUES
 (41, 1, TRUE), (41, 13, TRUE), (41, 14, TRUE), (41, 15, TRUE),
 (42, 1, TRUE), (42, 13, TRUE), (42, 14, TRUE), (42, 15, TRUE),
 (43, 1, TRUE), (43, 13, TRUE), (43, 14, TRUE), (43, 15, TRUE),
-(44, 1, TRUE), (44, 13, TRUE), (44, 14, TRUE), (44, 15, TRUE),
-(45, 1, TRUE), (45, 13, TRUE), (45, 14, TRUE), (45, 15, TRUE),
-(46, 1, TRUE), (46, 13, TRUE), (46, 14, TRUE), (46, 15, TRUE),
-(47, 1, TRUE), (47, 13, TRUE), (47, 14, TRUE), (47, 15, TRUE),
-(48, 1, TRUE), (48, 13, TRUE), (48, 14, TRUE), (48, 15, TRUE),
-(49, 1, TRUE), (49, 13, TRUE), (49, 14, TRUE), (49, 15, TRUE),
-(50, 1, TRUE), (50, 13, TRUE), (50, 14, TRUE), (50, 15, TRUE);
+(44, 1, TRUE), (44, 13, TRUE), (44, 14, TRUE), (44, 15, TRUE);
 
 -- Insert Employees
 INSERT INTO Employee (HotelID, Name, Role, Hiring_date, Salaries, Status) VALUES
@@ -313,4 +307,5 @@ INSERT INTO Booking (CustomerID, RoomID, ReceptionistID, TransactionID, checkin_
 (17, 41, 23, 'TXN20240220037', '2024-08-10', '2024-08-13', 6600.00, 1188.00, 7788.00, TRUE),
 (18, 7, 4, 'TXN20240221038', '2024-08-15', '2024-08-17', 11000.00, 1980.00, 12980.00, TRUE),
 (19, 36, 21, 'TXN20240222039', '2024-08-20', '2024-08-23', 14400.00, 2592.00, 16992.00, TRUE),
-(20, 45, 28, 'TXN20240223040', '2024-08-25', '2024-08-27', 4000.00, 720.00, 4720.00, TRUE);
+(20, 44, 28, 'TXN20240223040', '2024-08-25', '2024-08-27', 4000.00, 720.00, 4720.00, TRUE);
+
