@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaHotel } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
 
 const Footer = () => {
+  const { isHost } = useAuth();
   return (
     <footer className="footer">
       <div className="footer-container">
@@ -33,18 +35,14 @@ const Footer = () => {
         <div className="footer-section">
           <h4>Quick Links</h4>
           <ul className="footer-links">
-            <li><Link to="/">Home</Link></li>
-            <li><Link to="/hotels">Browse Hotels</Link></li>
+            {!isHost && (
+              <>
+                <li><Link to="/">Home</Link></li>
+                <li><Link to="/hotels">Browse Hotels</Link></li>
+              </>
+            )}
             <li><Link to="/about">About Us</Link></li>
             <li><Link to="/terms">Terms of Service</Link></li>
-          </ul>
-        </div>
-
-        <div className="footer-section">
-          <h4>For Hosts</h4>
-          <ul className="footer-links">
-            <li><Link to="/host/dashboard">Host Dashboard</Link></li>
-            <li><Link to="/login">Become a Host</Link></li>
           </ul>
         </div>
 

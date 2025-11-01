@@ -130,6 +130,7 @@ exports.getAllHotels = async (req, res) => {
 
 // Create hotel (Host only)
 exports.createHotel = async (req, res) => {
+  const client = await pool.connect();
   try {
     const hostId = req.user.id;
     const {
@@ -139,10 +140,13 @@ exports.createHotel = async (req, res) => {
       checkin_time,
       checkout_time,
       contact_receptionist,
-      hotel_img
+      hotel_img,
+      amenities
     } = req.body;
 
-    const result = await pool.query(
+    await client.query('BEGIN');
+
+    const result = await client.query(
       `INSERT INTO Hotel (HostID, HotelName, HotelAddress, Hoteldesc, Checkin_time, 
        Checkout_time, ContactReceptionist, HotelImg, OverallRating)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0.0) RETURNING *`,
@@ -150,18 +154,37 @@ exports.createHotel = async (req, res) => {
        contact_receptionist, hotel_img]
     );
 
+    const hotelId = result.rows[0].hotelid;
+
+    // Insert amenities if provided
+    if (amenities && amenities.length > 0) {
+      console.log('Creating hotel with amenities:', amenities);
+      for (const amenityId of amenities) {
+        await client.query(
+          'INSERT INTO Hotel_Amenities_Relation (HotelID, AmenityID, Availability_hrs) VALUES ($1, $2, $3)',
+          [hotelId, amenityId, '24/7']
+        );
+      }
+    }
+
+    await client.query('COMMIT');
+
     res.status(201).json({
       message: 'Hotel created successfully',
       hotel: result.rows[0]
     });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Error creating hotel:', error);
     res.status(500).json({ error: 'Failed to create hotel', details: error.message });
+  } finally {
+    client.release();
   }
 };
 
 // Update hotel
 exports.updateHotel = async (req, res) => {
+  const client = await pool.connect();
   try {
     const { id } = req.params;
     const hostId = req.user.id;
@@ -172,11 +195,12 @@ exports.updateHotel = async (req, res) => {
       checkin_time,
       checkout_time,
       contact_receptionist,
-      hotel_img
+      hotel_img,
+      amenities
     } = req.body;
 
     // Verify ownership
-    const ownershipCheck = await pool.query(
+    const ownershipCheck = await client.query(
       'SELECT * FROM Hotel WHERE HotelID = $1 AND HostID = $2',
       [id, hostId]
     );
@@ -185,7 +209,9 @@ exports.updateHotel = async (req, res) => {
       return res.status(403).json({ error: 'Not authorized to update this hotel' });
     }
 
-    const result = await pool.query(
+    await client.query('BEGIN');
+
+    const result = await client.query(
       `UPDATE Hotel SET 
        HotelName = $1, HotelAddress = $2, Hoteldesc = $3, Checkin_time = $4,
        Checkout_time = $5, ContactReceptionist = $6, HotelImg = $7
@@ -194,13 +220,35 @@ exports.updateHotel = async (req, res) => {
        contact_receptionist, hotel_img, id]
     );
 
+    // Update amenities if provided
+    if (amenities !== undefined) {
+      console.log('Updating hotel amenities:', amenities);
+      // Delete existing amenities
+      await client.query('DELETE FROM Hotel_Amenities_Relation WHERE HotelID = $1', [id]);
+      
+      // Insert new amenities
+      if (amenities.length > 0) {
+        for (const amenityId of amenities) {
+          await client.query(
+            'INSERT INTO Hotel_Amenities_Relation (HotelID, AmenityID, Availability_hrs) VALUES ($1, $2, $3)',
+            [id, amenityId, '24/7']
+          );
+        }
+      }
+    }
+
+    await client.query('COMMIT');
+
     res.json({
       message: 'Hotel updated successfully',
       hotel: result.rows[0]
     });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Error updating hotel:', error);
     res.status(500).json({ error: 'Failed to update hotel', details: error.message });
+  } finally {
+    client.release();
   }
 };
 

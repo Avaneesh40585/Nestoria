@@ -68,6 +68,7 @@ exports.checkAvailability = async (req, res) => {
 
 // Create room (Host only)
 exports.createRoom = async (req, res) => {
+  const client = await pool.connect();
   try {
     const {
       hotel_id,
@@ -76,13 +77,14 @@ exports.createRoom = async (req, res) => {
       room_desc,
       cost_per_night,
       position_view,
-      room_status
+      room_status,
+      amenities
     } = req.body;
 
     const hostId = req.user.id;
 
     // Verify hotel ownership
-    const ownershipCheck = await pool.query(
+    const ownershipCheck = await client.query(
       'SELECT * FROM Hotel WHERE HotelID = $1 AND HostID = $2',
       [hotel_id, hostId]
     );
@@ -91,25 +93,46 @@ exports.createRoom = async (req, res) => {
       return res.status(403).json({ error: 'Not authorized to add rooms to this hotel' });
     }
 
-    const result = await pool.query(
+    await client.query('BEGIN');
+
+    const result = await client.query(
       `INSERT INTO Room (HotelID, RoomNumber, Room_type, Room_desc, Cost_per_night, 
        Position_view, Room_Status, Room_Rating)
        VALUES ($1, $2, $3, $4, $5, $6, $7, 0.0) RETURNING *`,
       [hotel_id, room_number, room_type, room_desc, cost_per_night, position_view, room_status]
     );
 
+    const roomId = result.rows[0].roomid;
+
+    // Insert amenities if provided
+    if (amenities && amenities.length > 0) {
+      console.log('Creating room with amenities:', amenities);
+      for (const amenityId of amenities) {
+        await client.query(
+          'INSERT INTO Room_Amenities_Relation (RoomID, AmenityID, Working_Status) VALUES ($1, $2, TRUE)',
+          [roomId, amenityId]
+        );
+      }
+    }
+
+    await client.query('COMMIT');
+
     res.status(201).json({
       message: 'Room created successfully',
       room: result.rows[0]
     });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Error creating room:', error);
     res.status(500).json({ error: 'Failed to create room', details: error.message });
+  } finally {
+    client.release();
   }
 };
 
 // Update room
 exports.updateRoom = async (req, res) => {
+  const client = await pool.connect();
   try {
     const { id } = req.params;
     const {
@@ -118,13 +141,14 @@ exports.updateRoom = async (req, res) => {
       room_desc,
       cost_per_night,
       position_view,
-      room_status
+      room_status,
+      amenities
     } = req.body;
 
     const hostId = req.user.id;
 
     // Verify ownership through hotel
-    const ownershipCheck = await pool.query(
+    const ownershipCheck = await client.query(
       `SELECT r.* FROM Room r
        JOIN Hotel h ON r.HotelID = h.HotelID
        WHERE r.RoomID = $1 AND h.HostID = $2`,
@@ -135,7 +159,9 @@ exports.updateRoom = async (req, res) => {
       return res.status(403).json({ error: 'Not authorized to update this room' });
     }
 
-    const result = await pool.query(
+    await client.query('BEGIN');
+
+    const result = await client.query(
       `UPDATE Room SET 
        RoomNumber = $1, Room_type = $2, Room_desc = $3, Cost_per_night = $4,
        Position_view = $5, Room_Status = $6
@@ -143,13 +169,35 @@ exports.updateRoom = async (req, res) => {
       [room_number, room_type, room_desc, cost_per_night, position_view, room_status, id]
     );
 
+    // Update amenities if provided
+    if (amenities !== undefined) {
+      console.log('Updating room amenities:', amenities);
+      // Delete existing amenities
+      await client.query('DELETE FROM Room_Amenities_Relation WHERE RoomID = $1', [id]);
+      
+      // Insert new amenities
+      if (amenities.length > 0) {
+        for (const amenityId of amenities) {
+          await client.query(
+            'INSERT INTO Room_Amenities_Relation (RoomID, AmenityID, Working_Status) VALUES ($1, $2, TRUE)',
+            [id, amenityId]
+          );
+        }
+      }
+    }
+
+    await client.query('COMMIT');
+
     res.json({
       message: 'Room updated successfully',
       room: result.rows[0]
     });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Error updating room:', error);
     res.status(500).json({ error: 'Failed to update room', details: error.message });
+  } finally {
+    client.release();
   }
 };
 

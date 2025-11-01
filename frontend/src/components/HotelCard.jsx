@@ -1,47 +1,76 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaStar, FaMapMarkerAlt, FaRupeeSign } from 'react-icons/fa';
 
 const HotelCard = ({ hotel }) => {
   const navigate = useNavigate();
+  const [imageError, setImageError] = useState(false);
 
   const handleClick = () => {
     navigate(`/hotel/${hotel.hotelid}`);
   };
 
+  const handleViewDetails = (e) => {
+    e.stopPropagation();
+    handleClick();
+  };
+
+  const handleImageError = (e) => {
+    if (!imageError) {
+      setImageError(true);
+      e.target.src = 'https://via.placeholder.com/400x250?text=Hotel+Image';
+    }
+  };
+
+  // Format rating to one decimal place
+  const formatRating = (rating) => {
+    if (!rating || rating === 'N/A') return 'N/A';
+    return parseFloat(rating).toFixed(1);
+  };
+
   return (
     <div className="hotel-card" onClick={handleClick}>
       <div className="hotel-image">
-        <img src={hotel.hotelimg || 'https://via.placeholder.com/400x250'} alt={hotel.hotelname} />
+        <img 
+          src={imageError ? 'https://via.placeholder.com/400x250?text=Hotel+Image' : (hotel.hotelimg || 'https://via.placeholder.com/400x250?text=Hotel+Image')} 
+          alt={hotel.hotelname || 'Hotel'} 
+          onError={handleImageError}
+        />
         <div className="hotel-rating">
           <FaStar className="star-icon" />
-          <span>{hotel.overallrating || 'N/A'}</span>
+          <span>{formatRating(hotel.overallrating)}</span>
         </div>
       </div>
       
       <div className="hotel-details">
-        <h3 className="hotel-name">{hotel.hotelname}</h3>
+        <h3 className="hotel-name">{hotel.hotelname || 'Hotel Name'}</h3>
         <p className="hotel-location">
-          <FaMapMarkerAlt className="location-icon" />
-          {hotel.hoteladdress}
+          <span>{hotel.hoteladdress || 'Location not available'}</span>
         </p>
         
-        {hotel.hoteldesc && (
+        {hotel.hoteldesc && hotel.hoteldesc.trim() && (
           <p className="hotel-description">
-            {hotel.hoteldesc.substring(0, 100)}...
+            {hotel.hoteldesc.length > 120 
+              ? `${hotel.hoteldesc.substring(0, 120).trim()}...` 
+              : hotel.hoteldesc}
           </p>
         )}
         
         <div className="hotel-footer">
           <div className="hotel-price">
             <span className="price-label">Starting from</span>
-            <span className="price-amount">
+            <div className="price-amount">
               <FaRupeeSign className="rupee-icon-small" />
-              {hotel.min_price ? Math.floor(hotel.min_price) : 'N/A'}
+              <span>{hotel.min_price ? Math.floor(hotel.min_price).toLocaleString() : 'N/A'}</span>
               <span className="per-night">/night</span>
-            </span>
+            </div>
           </div>
-          <button className="view-details-btn">View Details</button>
+          <button 
+            className="view-details-btn"
+            onClick={handleViewDetails}
+          >
+            View Details
+          </button>
         </div>
       </div>
     </div>

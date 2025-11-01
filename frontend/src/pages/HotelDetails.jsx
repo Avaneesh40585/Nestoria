@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { hotelAPI } from '../services/api';
 import RoomCard from '../components/RoomCard';
-import { FaStar, FaMapMarkerAlt, FaClock, FaPhone, FaWifi, FaSwimmingPool } from 'react-icons/fa';
+import { FaStar, FaMapMarkerAlt, FaClock, FaPhoneAlt, FaWifi, FaSwimmingPool, FaParking, FaDumbbell, FaUtensils, FaSpa, FaCoffee, FaTv, FaConciergeBell, FaShieldAlt, FaSnowflake, FaHotTub, FaTshirt, FaGlassMartini, FaQuoteLeft, FaUser } from 'react-icons/fa';
 
 const HotelDetails = () => {
   const { id } = useParams();
@@ -10,6 +10,112 @@ const HotelDetails = () => {
   const [amenities, setAmenities] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Validate hotel data
+  const validateHotelData = (hotelData) => {
+    if (!hotelData) return null;
+    
+    return {
+      ...hotelData,
+      hotelname: hotelData.hotelname?.trim() || 'Hotel Name Not Available',
+      hoteladdress: hotelData.hoteladdress?.trim() || 'Address Not Available',
+      hoteldesc: hotelData.hoteldesc?.trim() || 'No description available for this hotel.',
+      hotelimg: hotelData.hotelimg?.trim() || 'https://via.placeholder.com/1200x400?text=Hotel+Image',
+      overallrating: hotelData.overallrating || null,
+      checkin_time: hotelData.checkin_time?.trim() || 'Not Available',
+      checkout_time: hotelData.checkout_time?.trim() || 'Not Available',
+      contactreceptionist: hotelData.contactreceptionist?.trim() || 'Contact information not available'
+    };
+  };
+
+  // Validate amenities array
+  const validateAmenities = (amenitiesData) => {
+    if (!Array.isArray(amenitiesData)) return [];
+    
+    return amenitiesData.filter(amenity => 
+      amenity && 
+      amenity.amenity_name && 
+      amenity.amenity_name.trim()
+    ).map(amenity => ({
+      ...amenity,
+      amenity_name: amenity.amenity_name.trim(),
+      availability_hrs: amenity.availability_hrs?.trim() || '24/7'
+    }));
+  };
+
+  // Validate rooms array
+  const validateRooms = (roomsData) => {
+    if (!Array.isArray(roomsData)) return [];
+    
+    return roomsData.filter(room => room && room.roomid).map(room => ({
+      ...room,
+      room_type: room.room_type?.trim() || 'Standard Room',
+      roomnumber: room.roomnumber?.trim() || 'N/A',
+      position_view: room.position_view?.trim() || 'Standard View',
+      room_status: room.room_status?.trim() || 'Unknown',
+      cost_per_night: room.cost_per_night && !isNaN(room.cost_per_night) ? room.cost_per_night : null,
+      room_rating: room.room_rating || null,
+      room_desc: room.room_desc?.trim() || ''
+    }));
+  };
+
+  // Format description into paragraphs
+  const formatDescription = (description) => {
+    if (!description || !description.trim()) return [];
+    
+    // Split by newlines or double spaces to create paragraphs
+    const paragraphs = description
+      .split(/\n\n|\n|\. (?=[A-Z])/)
+      .map(p => p.trim())
+      .filter(p => p.length > 0);
+    
+    return paragraphs;
+  };
+
+  // Format reviews into structured data
+  const formatReviews = (reviewText) => {
+    if (!reviewText || !reviewText.trim()) return [];
+    
+    // Try to parse reviews if they're in a structured format
+    // Otherwise, treat as a single review
+    const reviews = [];
+    const lines = reviewText.split('\n').filter(line => line.trim());
+    
+    if (lines.length > 0) {
+      // Simple format: create review cards from the text
+      reviews.push({
+        id: 1,
+        author: 'Guest Review',
+        rating: hotel.overallrating || 4.0,
+        date: 'Recent',
+        comment: reviewText.trim()
+      });
+    }
+    
+    return reviews;
+  };
+  const getAmenityIcon = (amenityName) => {
+    const name = amenityName.toLowerCase();
+    
+    if (name.includes('wifi') || name.includes('wi-fi') || name.includes('internet')) return FaWifi;
+    if (name.includes('room service') || name.includes('roomservice')) return FaConciergeBell;
+    if (name.includes('laundry') || name.includes('laundary')) return FaTshirt;
+    if (name.includes('bar') || name.includes('mini bar') || name.includes('minibar')) return FaGlassMartini;
+    if (name.includes('pool') || name.includes('swimming')) return FaSwimmingPool;
+    if (name.includes('parking') || name.includes('garage')) return FaParking;
+    if (name.includes('gym') || name.includes('fitness')) return FaDumbbell;
+    if (name.includes('restaurant') || name.includes('dining')) return FaUtensils;
+    if (name.includes('spa') || name.includes('massage')) return FaSpa;
+    if (name.includes('breakfast') || name.includes('coffee')) return FaCoffee;
+    if (name.includes('tv') || name.includes('television')) return FaTv;
+    if (name.includes('concierge')) return FaConciergeBell;
+    if (name.includes('security') || name.includes('safe')) return FaShieldAlt;
+    if (name.includes('ac') || name.includes('air condition')) return FaSnowflake;
+    if (name.includes('jacuzzi') || name.includes('hot tub')) return FaHotTub;
+    
+    return FaConciergeBell; // Default icon
+  };
 
   useEffect(() => {
     fetchHotelDetails();
@@ -17,24 +123,52 @@ const HotelDetails = () => {
 
   const fetchHotelDetails = async () => {
     setLoading(true);
+    setError(null);
     try {
       const response = await hotelAPI.getDetails(id);
-      setHotel(response.data.hotel);
-      setAmenities(response.data.amenities);
-      setRooms(response.data.rooms);
+      
+      // Validate and set data
+      const validatedHotel = validateHotelData(response.data?.hotel);
+      const validatedAmenities = validateAmenities(response.data?.amenities);
+      const validatedRooms = validateRooms(response.data?.rooms);
+      
+      if (!validatedHotel) {
+        setError('Hotel data is incomplete or invalid');
+        setHotel(null);
+      } else {
+        setHotel(validatedHotel);
+      }
+      
+      setAmenities(validatedAmenities);
+      setRooms(validatedRooms);
     } catch (error) {
       console.error('Error fetching hotel details:', error);
+      setError(error.response?.data?.message || 'Failed to load hotel details. Please try again later.');
+      setHotel(null);
     } finally {
       setLoading(false);
     }
   };
 
   if (loading) {
-    return <div className="loading-container">Loading hotel details...</div>;
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Loading hotel details...</p>
+      </div>
+    );
   }
 
-  if (!hotel) {
-    return <div className="error-container">Hotel not found</div>;
+  if (error || !hotel) {
+    return (
+      <div className="error-container">
+        <h2>Unable to Load Hotel</h2>
+        <p>{error || 'Hotel not found or data is unavailable.'}</p>
+        <button onClick={() => window.history.back()} className="btn-back">
+          Go Back
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -50,7 +184,10 @@ const HotelDetails = () => {
             <h1 className="hotel-title">{hotel.hotelname}</h1>
             <div className="hotel-meta">
               <span className="hotel-rating">
-                <FaStar /> {hotel.overallrating || 'N/A'}
+                <FaStar /> 
+                {hotel.overallrating && !isNaN(hotel.overallrating) 
+                  ? parseFloat(hotel.overallrating).toFixed(1) 
+                  : 'Not Rated'}
               </span>
               <span className="hotel-location">
                 <FaMapMarkerAlt /> {hotel.hoteladdress}
@@ -62,9 +199,16 @@ const HotelDetails = () => {
 
       <div className="container">
         <div className="hotel-info-section">
-          <div className="hotel-description">
-            <h2>About This Hotel</h2>
-            <p>{hotel.hoteldesc || 'No description available'}</p>
+          <div className="hotel-description-section">
+            <div className="section-header">
+              <h2>About This Hotel</h2>
+              <div className="header-divider"></div>
+            </div>
+            <div className="description-content">
+              {formatDescription(hotel.hoteldesc).map((paragraph, index) => (
+                <p key={index} className="description-paragraph">{paragraph}</p>
+              ))}
+            </div>
           </div>
 
           <div className="hotel-sidebar">
@@ -73,19 +217,19 @@ const HotelDetails = () => {
               <div className="info-item">
                 <FaClock className="info-icon" />
                 <div>
-                  <strong>Check-in:</strong> {hotel.checkin_time || 'N/A'}
+                  <strong>Check-in:</strong> {hotel.checkin_time}
                 </div>
               </div>
               <div className="info-item">
                 <FaClock className="info-icon" />
                 <div>
-                  <strong>Check-out:</strong> {hotel.checkout_time || 'N/A'}
+                  <strong>Check-out:</strong> {hotel.checkout_time}
                 </div>
               </div>
               <div className="info-item">
-                <FaPhone className="info-icon" />
+                <FaPhoneAlt className="info-icon" />
                 <div>
-                  <strong>Contact:</strong> {hotel.contactreceptionist || 'N/A'}
+                  <strong>Contact:</strong> {hotel.contactreceptionist}
                 </div>
               </div>
             </div>
@@ -96,18 +240,23 @@ const HotelDetails = () => {
           <h2>Amenities</h2>
           {amenities.length > 0 ? (
             <div className="amenities-grid">
-              {amenities.map((amenity) => (
-                <div key={amenity.amenityid} className="amenity-item">
-                  <FaWifi className="amenity-icon" />
-                  <div>
-                    <h4>{amenity.amenity_name}</h4>
-                    <p className="amenity-hours">{amenity.availability_hrs}</p>
+              {amenities.map((amenity) => {
+                const AmenityIcon = getAmenityIcon(amenity.amenity_name);
+                return (
+                  <div key={amenity.amenityid} className="amenity-item">
+                    <AmenityIcon className="amenity-icon" />
+                    <div>
+                      <h4>{amenity.amenity_name}</h4>
+                      <p className="amenity-hours">
+                        {amenity.availability_hrs || 'Available 24/7'}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
-            <p>No amenities listed</p>
+            <p className="no-data-message">No amenities information available for this hotel.</p>
           )}
         </div>
 
@@ -120,14 +269,43 @@ const HotelDetails = () => {
               ))}
             </div>
           ) : (
-            <p>No rooms available</p>
+            <p className="no-data-message">No rooms are currently available at this hotel.</p>
           )}
         </div>
 
-        {hotel.reviews && (
+        {hotel.reviews && hotel.reviews.trim() && (
           <div className="reviews-section">
-            <h2>Reviews</h2>
-            <p>{hotel.reviews}</p>
+            <div className="section-header">
+              <h2>Guest Reviews</h2>
+              <div className="header-divider"></div>
+            </div>
+            <div className="reviews-container">
+              {formatReviews(hotel.reviews).map((review) => (
+                <div key={review.id} className="review-card">
+                  <div className="review-header">
+                    <div className="reviewer-info">
+                      <div className="reviewer-avatar">
+                        <FaUser />
+                      </div>
+                      <div>
+                        <h4 className="reviewer-name">{review.author}</h4>
+                        <span className="review-date">{review.date}</span>
+                      </div>
+                    </div>
+                    <div className="review-rating">
+                      <FaStar className="review-star" />
+                      <span className="rating-value">
+                        {typeof review.rating === 'number' ? review.rating.toFixed(1) : review.rating}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="review-body">
+                    <FaQuoteLeft className="quote-icon quote-left" />
+                    <p className="review-comment">{review.comment}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

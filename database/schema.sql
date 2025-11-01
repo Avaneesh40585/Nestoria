@@ -55,7 +55,7 @@ CREATE TABLE Hotel (
     ContactReceptionist VARCHAR(15),
     Reviews TEXT,
     OverallRating DECIMAL(2,1),
-    HotelImg VARCHAR(255),
+    HotelImg TEXT,
     FOREIGN KEY (HostID) REFERENCES Host(HostID) ON DELETE SET NULL
 );
 

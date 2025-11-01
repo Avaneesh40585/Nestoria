@@ -13,7 +13,9 @@ import HotelDetails from './pages/HotelDetails';
 import RoomDetails from './pages/RoomDetails';
 import BookingPage from './pages/BookingPage';
 import CustomerProfile from './pages/CustomerProfile';
+import HostProfile from './pages/HostProfile';
 import HostDashboard from './pages/HostDashboard';
+import AddRooms from './pages/AddRooms';
 import AboutUs from './pages/AboutUs';
 import TermsOfService from './pages/TermsOfService';
 
@@ -56,10 +58,26 @@ function App() {
 
               {/* Protected Host Routes */}
               <Route 
+                path="/host/profile" 
+                element={
+                  <ProtectedRoute requireHost={true}>
+                    <HostProfile />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/host/dashboard" 
                 element={
                   <ProtectedRoute requireHost={true}>
                     <HostDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/host/add-rooms" 
+                element={
+                  <ProtectedRoute requireHost={true}>
+                    <AddRooms />
                   </ProtectedRoute>
                 } 
               />

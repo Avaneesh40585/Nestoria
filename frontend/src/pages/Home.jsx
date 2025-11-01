@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import SearchBar from '../components/SearchBar';
 import { FaHotel, FaShieldAlt, FaHeadset, FaStar } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
+  const { user, isAuthenticated } = useAuth();
+  const isCustomer = user?.role === 'customer';
   return (
     <div className="home-page">
       <section className="hero-section">
@@ -55,15 +58,17 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="host-section">
-        <div className="container">
-          <div className="host-content">
-            <h2>Are You a Hotel Owner?</h2>
-            <p>Join Nestoria and reach millions of travelers</p>
-            <Link to="/login" className="host-btn">Become a Host</Link>
+      {!isAuthenticated || !isCustomer ? (
+        <section className="host-section">
+          <div className="container">
+            <div className="host-content">
+              <h2>Are You a Hotel Owner?</h2>
+              <p>Join Nestoria and reach millions of travelers</p>
+              <Link to="/login" className="host-btn">Become a Host</Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
     </div>
   );
 };
