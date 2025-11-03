@@ -1,5 +1,5 @@
 const pool = require('../config/database');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 // Get customer profile
 exports.getProfile = async (req, res) => {

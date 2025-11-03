@@ -61,7 +61,8 @@ const LoginSignup = () => {
         }
       }
 
-      login(response.data.token, response.data.user);
+      const responseData = response.data.data || response.data;
+      login(responseData.token, responseData.user);
       
       if (userType === 'host') {
         navigate('/host/dashboard');
@@ -69,7 +70,8 @@ const LoginSignup = () => {
         navigate('/');
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'An error occurred. Please try again.');
+      console.error('Auth error:', err);
+      setError(err.response?.data?.error || err.message || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }

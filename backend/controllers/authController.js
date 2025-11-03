@@ -1,11 +1,13 @@
 const pool = require('../config/database');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // Customer Registration
 exports.registerCustomer = async (req, res) => {
   try {
     const { full_name, email, password, phone_number, gender, age, address, identity_no } = req.body;
+    
+    console.log('Registration attempt - Customer:', { email, full_name });
 
     // Check if email already exists
     const existingUser = await pool.query(
@@ -14,6 +16,7 @@ exports.registerCustomer = async (req, res) => {
     );
 
     if (existingUser.rows.length > 0) {
+      console.log('Email already exists:', email);
       return res.status(400).json({ error: 'Email already registered' });
     }
 
@@ -28,6 +31,7 @@ exports.registerCustomer = async (req, res) => {
     );
 
     const customer = result.rows[0];
+    console.log('Customer created:', customer.customerid);
     const token = jwt.sign(
       { id: customer.customerid, email: customer.email, role: 'customer' },
       process.env.JWT_SECRET,
@@ -36,17 +40,29 @@ exports.registerCustomer = async (req, res) => {
 
     res.status(201).json({
       message: 'Customer registered successfully',
-      token,
-      user: {
-        id: customer.customerid,
-        name: customer.full_name,
-        email: customer.email,
-        role: 'customer'
+      data: {
+        token,
+        user: {
+          id: customer.customerid,
+          name: customer.full_name,
+          email: customer.email,
+          role: 'customer'
+        }
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ error: 'Registration failed', details: error.message });
+    console.error('Registration error:', error.message);
+    let errorMessage = 'Registration failed';
+    
+    if (error.message.includes('customer_email_key')) {
+      errorMessage = 'Email already registered';
+    } else if (error.message.includes('customer_phonenumber_key')) {
+      errorMessage = 'Phone number already registered';
+    } else if (error.message.includes('customer_identity_no_key')) {
+      errorMessage = 'Identity number already registered';
+    }
+    
+    res.status(500).json({ error: errorMessage, details: error.message });
   }
 };
 
@@ -54,6 +70,8 @@ exports.registerCustomer = async (req, res) => {
 exports.registerHost = async (req, res) => {
   try {
     const { full_name, email, password, phone_number, gender, age, address, identity_no } = req.body;
+    
+    console.log('Registration attempt - Host:', { email, full_name });
 
     const existingHost = await pool.query(
       'SELECT * FROM Host WHERE Email = $1',
@@ -61,6 +79,7 @@ exports.registerHost = async (req, res) => {
     );
 
     if (existingHost.rows.length > 0) {
+      console.log('Email already exists:', email);
       return res.status(400).json({ error: 'Email already registered' });
     }
 
@@ -73,6 +92,7 @@ exports.registerHost = async (req, res) => {
     );
 
     const host = result.rows[0];
+    console.log('Host created:', host.hostid);
     const token = jwt.sign(
       { id: host.hostid, email: host.email, role: 'host' },
       process.env.JWT_SECRET,
@@ -81,17 +101,29 @@ exports.registerHost = async (req, res) => {
 
     res.status(201).json({
       message: 'Host registered successfully',
-      token,
-      user: {
-        id: host.hostid,
-        name: host.full_name,
-        email: host.email,
-        role: 'host'
+      data: {
+        token,
+        user: {
+          id: host.hostid,
+          name: host.full_name,
+          email: host.email,
+          role: 'host'
+        }
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ error: 'Registration failed', details: error.message });
+    console.error('Registration error:', error.message);
+    let errorMessage = 'Registration failed';
+    
+    if (error.message.includes('host_email_key')) {
+      errorMessage = 'Email already registered';
+    } else if (error.message.includes('host_phonenumber_key')) {
+      errorMessage = 'Phone number already registered';
+    } else if (error.message.includes('host_identity_no_key')) {
+      errorMessage = 'Identity number already registered';
+    }
+    
+    res.status(500).json({ error: errorMessage, details: error.message });
   }
 };
 
@@ -124,12 +156,14 @@ exports.loginCustomer = async (req, res) => {
 
     res.json({
       message: 'Login successful',
-      token,
-      user: {
-        id: customer.customerid,
-        name: customer.full_name,
-        email: customer.email,
-        role: 'customer'
+      data: {
+        token,
+        user: {
+          id: customer.customerid,
+          name: customer.full_name,
+          email: customer.email,
+          role: 'customer'
+        }
       }
     });
   } catch (error) {
@@ -167,12 +201,14 @@ exports.loginHost = async (req, res) => {
 
     res.json({
       message: 'Login successful',
-      token,
-      user: {
-        id: host.hostid,
-        name: host.full_name,
-        email: host.email,
-        role: 'host'
+      data: {
+        token,
+        user: {
+          id: host.hostid,
+          name: host.full_name,
+          email: host.email,
+          role: 'host'
+        }
       }
     });
   } catch (error) {

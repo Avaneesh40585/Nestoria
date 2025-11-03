@@ -16,7 +16,7 @@ const AboutUs = () => {
           <h2>Who We Are</h2>
           <p>
             Nestoria Inc. is India's premier hotel booking platform, connecting travelers with
-            exceptional accommodations across the country. Founded in 2020, we've revolutionized
+            exceptional accommodations across the country. We've revolutionized
             the way people discover and book hotels, making travel more accessible and enjoyable
             for everyone.
           </p>
@@ -26,7 +26,7 @@ const AboutUs = () => {
             hospitality begins with trust, transparency, and exceptional service.
           </p>
         </section>
-
+ 
         <section className="stats-section">
           <div className="stats-grid">
             <div className="stat-item">
