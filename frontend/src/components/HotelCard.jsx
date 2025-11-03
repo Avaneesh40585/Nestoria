@@ -5,7 +5,7 @@ import { FaStar, FaMapMarkerAlt, FaRupeeSign } from 'react-icons/fa';
 const HotelCard = ({ hotel }) => {
   const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
-
+  
   const handleClick = () => {
     navigate(`/hotel/${hotel.hotelid}`);
   };

@@ -12,6 +12,11 @@ const RoomDetails = () => {
   const [amenities, setAmenities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Get check-in/check-out dates from URL params
+  const searchParams = new URLSearchParams(window.location.search);
+  const checkinParam = searchParams.get('checkin');
+  const checkoutParam = searchParams.get('checkout');
 
   // Validate room data
   const validateRoomData = (roomData) => {

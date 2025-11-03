@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
-import { FaUser, FaEnvelope, FaLock, FaPhone, FaMapMarkerAlt, FaGoogle } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaLock, FaPhoneAlt, FaMapMarkerAlt, FaGoogle } from 'react-icons/fa';
 
 const LoginSignup = () => {
   const navigate = useNavigate();
@@ -11,6 +11,7 @@ const LoginSignup = () => {
   const [userType, setUserType] = useState('customer'); // 'customer' or 'host'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   
   const [formData, setFormData] = useState({
     full_name: '',
@@ -23,20 +24,169 @@ const LoginSignup = () => {
     identity_no: ''
   });
 
+  // Validation functions
+  const validateFullName = (name) => {
+    if (!name.trim()) return 'Full name is required';
+    if (name.trim().length < 3) return 'Name must be at least 3 characters';
+    if (name.trim().length > 150) return 'Name must not exceed 150 characters';
+    if (!/^[a-zA-Z\s.]+$/.test(name)) return 'Name can only contain letters, spaces, and dots';
+    return '';
+  };
+
+  const validateEmail = (email) => {
+    if (!email.trim()) return 'Email is required';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return 'Please enter a valid email address';
+    if (email.length > 100) return 'Email must not exceed 100 characters';
+    return '';
+  };
+
+  const validatePassword = (password) => {
+    if (!password) return 'Password is required';
+    if (password.length < 6) return 'Password must be at least 6 characters';
+    if (password.length > 100) return 'Password must not exceed 100 characters';
+    if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
+    if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter';
+    if (!/[0-9]/.test(password)) return 'Password must contain at least one number';
+    return '';
+  };
+
+  const validatePhone = (phone) => {
+    if (!phone.trim()) return 'Phone number is required';
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(phone.trim())) return 'Please enter a valid 10-digit phone number';
+    return '';
+  };
+
+  const validateAge = (age) => {
+    if (!age) return 'Age is required';
+    const ageNum = parseInt(age);
+    if (isNaN(ageNum)) return 'Age must be a number';
+    if (ageNum < 18) return 'You must be at least 18 years old';
+    if (ageNum > 120) return 'Please enter a valid age';
+    return '';
+  };
+
+  const validateAddress = (address) => {
+    if (!address.trim()) return 'Address is required';
+    if (address.trim().length < 10) return 'Address must be at least 10 characters';
+    if (address.trim().length > 255) return 'Address must not exceed 255 characters';
+    return '';
+  };
+
+  const validateIdentity = (identity) => {
+    if (!identity.trim()) return 'Identity number is required';
+    const cleaned = identity.trim().replace(/\s/g, '');
+    if (cleaned.length !== 12) return 'Identity number must be exactly 12 digits';
+    if (!/^\d{12}$/.test(cleaned)) return 'Identity number must contain only digits';
+    return '';
+  };
+
+  const validateGender = (gender) => {
+    if (!gender) return 'Please select your gender';
+    if (!['Male', 'Female', 'Other'].includes(gender)) return 'Invalid gender selection';
+    return '';
+  };
+
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'full_name':
+        return validateFullName(value);
+      case 'email':
+        return validateEmail(value);
+      case 'password':
+        return validatePassword(value);
+      case 'phone_number':
+        return validatePhone(value);
+      case 'age':
+        return validateAge(value);
+      case 'address':
+        return validateAddress(value);
+      case 'identity_no':
+        return validateIdentity(value);
+      case 'gender':
+        return validateGender(value);
+      default:
+        return '';
+    }
+  };
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+    
+    // Clear general error
     setError('');
+    
+    // Validate field on change (only for signup)
+    if (!isLogin) {
+      const fieldError = validateField(name, value);
+      setFieldErrors(prev => ({
+        ...prev,
+        [name]: fieldError
+      }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    if (!isLogin) {
+      const fieldError = validateField(name, value);
+      setFieldErrors(prev => ({
+        ...prev,
+        [name]: fieldError
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setFieldErrors({});
 
     try {
+      // Validate all fields for signup
+      if (!isLogin) {
+        const errors = {};
+        Object.keys(formData).forEach(key => {
+          if (key !== 'email' && key !== 'password') {
+            const error = validateField(key, formData[key]);
+            if (error) errors[key] = error;
+          }
+        });
+        
+        // Always validate email and password
+        const emailError = validateEmail(formData.email);
+        const passwordError = validatePassword(formData.password);
+        if (emailError) errors.email = emailError;
+        if (passwordError) errors.password = passwordError;
+        
+        if (Object.keys(errors).length > 0) {
+          setFieldErrors(errors);
+          setError('Please fix the errors before submitting');
+          setLoading(false);
+          return;
+        }
+      } else {
+        // For login, just validate email and password
+        const emailError = validateEmail(formData.email);
+        if (emailError) {
+          setError(emailError);
+          setLoading(false);
+          return;
+        }
+        if (!formData.password) {
+          setError('Password is required');
+          setLoading(false);
+          return;
+        }
+      }
+
       let response;
       
       if (isLogin) {
@@ -53,11 +203,21 @@ const LoginSignup = () => {
           });
         }
       } else {
-        // Registration
+        // Registration - clean data before sending
+        const cleanedData = {
+          ...formData,
+          full_name: formData.full_name.trim(),
+          email: formData.email.trim().toLowerCase(),
+          phone_number: formData.phone_number.trim(),
+          age: parseInt(formData.age),
+          address: formData.address.trim(),
+          identity_no: formData.identity_no.trim().replace(/\s/g, '')
+        };
+        
         if (userType === 'customer') {
-          response = await authAPI.registerCustomer(formData);
+          response = await authAPI.registerCustomer(cleanedData);
         } else {
-          response = await authAPI.registerHost(formData);
+          response = await authAPI.registerHost(cleanedData);
         }
       }
 
@@ -120,8 +280,11 @@ const LoginSignup = () => {
                     placeholder="Full Name"
                     value={formData.full_name}
                     onChange={handleChange}
+                    onBlur={handleBlur}
                     required
+                    className={fieldErrors.full_name ? 'input-error' : ''}
                   />
+                  {fieldErrors.full_name && <span className="field-error">{fieldErrors.full_name}</span>}
                 </div>
 
                 <div className="form-row">
@@ -130,13 +293,16 @@ const LoginSignup = () => {
                       name="gender"
                       value={formData.gender}
                       onChange={handleChange}
+                      onBlur={handleBlur}
                       required
+                      className={fieldErrors.gender ? 'input-error' : ''}
                     >
-                      <option value="">Gender</option>
+                      <option value="" disabled>Select Gender</option>
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                       <option value="Other">Other</option>
                     </select>
+                    {fieldErrors.gender && <span className="field-error">{fieldErrors.gender}</span>}
                   </div>
                   <div className="form-group">
                     <input
@@ -145,21 +311,31 @@ const LoginSignup = () => {
                       placeholder="Age"
                       value={formData.age}
                       onChange={handleChange}
+                      onBlur={handleBlur}
                       required
+                      min="18"
+                      max="120"
+                      className={fieldErrors.age ? 'input-error' : ''}
                     />
+                    {fieldErrors.age && <span className="field-error">{fieldErrors.age}</span>}
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <FaPhone className="form-icon" />
+                  <FaPhoneAlt className="form-icon" />
                   <input
                     type="tel"
                     name="phone_number"
-                    placeholder="Phone Number"
+                    placeholder="Phone Number (10 digits)"
                     value={formData.phone_number}
                     onChange={handleChange}
+                    onBlur={handleBlur}
                     required
+                    maxLength="10"
+                    pattern="\d{10}"
+                    className={fieldErrors.phone_number ? 'input-error' : ''}
                   />
+                  {fieldErrors.phone_number && <span className="field-error">{fieldErrors.phone_number}</span>}
                 </div>
 
                 <div className="form-group">
@@ -167,23 +343,30 @@ const LoginSignup = () => {
                   <input
                     type="text"
                     name="address"
-                    placeholder="Address"
+                    placeholder="Address (min 10 characters)"
                     value={formData.address}
                     onChange={handleChange}
+                    onBlur={handleBlur}
                     required
+                    className={fieldErrors.address ? 'input-error' : ''}
                   />
+                  {fieldErrors.address && <span className="field-error">{fieldErrors.address}</span>}
                 </div>
 
                 <div className="form-group">
                   <input
                     type="text"
                     name="identity_no"
-                    placeholder="Identity Number (Aadhaar/PAN)"
+                    placeholder="Identity Number (12 digits - Aadhaar/PAN)"
                     value={formData.identity_no}
                     onChange={handleChange}
+                    onBlur={handleBlur}
                     required
                     maxLength="12"
+                    pattern="\d{12}"
+                    className={fieldErrors.identity_no ? 'input-error' : ''}
                   />
+                  {fieldErrors.identity_no && <span className="field-error">{fieldErrors.identity_no}</span>}
                 </div>
               </>
             )}
@@ -196,8 +379,11 @@ const LoginSignup = () => {
                 placeholder="Email Address"
                 value={formData.email}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 required
+                className={fieldErrors.email ? 'input-error' : ''}
               />
+              {fieldErrors.email && <span className="field-error">{fieldErrors.email}</span>}
             </div>
 
             <div className="form-group">
@@ -205,12 +391,15 @@ const LoginSignup = () => {
               <input
                 type="password"
                 name="password"
-                placeholder="Password"
+                placeholder={isLogin ? "Password" : "Password (min 6 chars, 1 upper, 1 lower, 1 number)"}
                 value={formData.password}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 required
                 minLength="6"
+                className={fieldErrors.password ? 'input-error' : ''}
               />
+              {fieldErrors.password && <span className="field-error">{fieldErrors.password}</span>}
             </div>
 
             <button type="submit" className="submit-btn" disabled={loading}>

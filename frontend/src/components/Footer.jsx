@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaHotel } from 'react-icons/fa';
+import { FaFacebook, FaInstagram, FaLinkedin, FaHotel } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import { useAuth } from '../context/AuthContext';
 
 const Footer = () => {
@@ -20,8 +21,8 @@ const Footer = () => {
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
               <FaFacebook />
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
-              <FaTwitter />
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">
+              <FaXTwitter />
             </a>
             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
               <FaInstagram />

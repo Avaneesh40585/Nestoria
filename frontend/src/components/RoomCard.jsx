@@ -4,7 +4,7 @@ import { FaStar, FaRupeeSign, FaEye } from 'react-icons/fa';
 
 const RoomCard = ({ room }) => {
   const navigate = useNavigate();
-
+  
   // Validate and provide defaults for room data
   const roomType = room?.room_type?.trim() || 'Standard Room';
   const roomNumber = room?.roomnumber?.trim() || 'N/A';

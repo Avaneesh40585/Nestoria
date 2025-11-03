@@ -913,9 +913,10 @@
 .form-icon {
   position: absolute;
   left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 12px;
   color: var(--text-light);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .auth-form input,
@@ -927,6 +928,20 @@
   border-radius: var(--border-radius);
   font-size: 1rem;
   transition: var(--transition);
+}
+
+.auth-form input.input-error,
+.auth-form select.input-error {
+  border-color: var(--danger-color);
+  background-color: #fff5f5;
+}
+
+.auth-form .field-error {
+  display: block;
+  color: var(--danger-color);
+  font-size: 0.85rem;
+  margin-top: 5px;
+  margin-left: 5px;
 }
 
 .auth-form select {
