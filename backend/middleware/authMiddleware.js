@@ -24,4 +24,11 @@ const authorizeHost = (req, res, next) => {
   next();
 };
 
-module.exports = { authenticateToken, authorizeHost };
+const isCustomer = (req, res, next) => {
+  if (req.user.role !== 'customer') {
+    return res.status(403).json({ error: 'Customer authorization required' });
+  }
+  next();
+};
+
+module.exports = { authenticateToken, authorizeHost, isCustomer };

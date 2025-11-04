@@ -1,3 +1,5 @@
+
+
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
@@ -68,6 +70,12 @@ export const hostAPI = {
   getProfile: () => api.get('/hosts/profile'),
   updateProfile: (data) => api.put('/hosts/profile', data),
   getDashboardStats: () => api.get('/hosts/dashboard/stats'),
+};
+
+// Review API
+export const reviewAPI = {
+  addReview: (data) => api.post('/reviews', data),
+  getBookingReview: (bookingId) => api.get(`/reviews/booking/${bookingId}`),
 };
 
 export default api;

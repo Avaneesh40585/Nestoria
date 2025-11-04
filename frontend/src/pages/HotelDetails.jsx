@@ -11,6 +11,17 @@ const HotelDetails = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [parsedReviews, setParsedReviews] = useState([]);
+
+  // Function to scroll to reviews section
+  const scrollToReviews = () => {
+    const reviewsSection = document.querySelector('.reviews-section');
+    if (reviewsSection) {
+      reviewsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      alert('No reviews available yet for this hotel.');
+    }
+  };
 
   // Validate hotel data
   const validateHotelData = (hotelData) => {
@@ -121,6 +132,46 @@ const HotelDetails = () => {
     fetchHotelDetails();
   }, [id]);
 
+  // Parse reviews when hotel data changes
+  useEffect(() => {
+    if (hotel?.reviews) {
+      const reviewsArray = hotel.reviews.split('\n').filter(r => r.trim());
+      const parsed = [];
+      
+      reviewsArray.forEach((reviewStr, index) => {
+        try {
+          // Try to parse as JSON first (new format)
+          const jsonReview = JSON.parse(reviewStr);
+          parsed.push(jsonReview);
+        } catch (e) {
+          // If not JSON, treat as old text format
+          // Check if it's in "Name: [Rating: X/5] text" format
+          const oldFormatMatch = reviewStr.match(/^(.+?):\s*\[Rating:\s*(\d+)\/5\]\s*(.+)$/);
+          if (oldFormatMatch) {
+            parsed.push({
+              customer: oldFormatMatch[1].trim(),
+              rating: parseInt(oldFormatMatch[2]),
+              review: oldFormatMatch[3].trim(),
+              date: new Date().toISOString()
+            });
+          } else {
+            // Plain text review without rating
+            parsed.push({
+              customer: 'Guest',
+              rating: hotel.overallrating || 4,
+              review: reviewStr.trim(),
+              date: new Date().toISOString()
+            });
+          }
+        }
+      });
+      
+      setParsedReviews(parsed);
+    } else {
+      setParsedReviews([]);
+    }
+  }, [hotel]);
+
   const fetchHotelDetails = async () => {
     setLoading(true);
     setError(null);
@@ -192,6 +243,9 @@ const HotelDetails = () => {
               <span className="hotel-location">
                 <FaMapMarkerAlt /> {hotel.hoteladdress}
               </span>
+              <button className="see-reviews-btn" onClick={scrollToReviews}>
+                <FaStar /> See Reviews
+              </button>
             </div>
           </div>
         </div>
@@ -273,39 +327,51 @@ const HotelDetails = () => {
           )}
         </div>
 
-        {hotel.reviews && hotel.reviews.trim() && (
+        {parsedReviews.length > 0 ? (
           <div className="reviews-section">
             <div className="section-header">
-              <h2>Guest Reviews</h2>
+              <h2>Guest Reviews ({parsedReviews.length})</h2>
               <div className="header-divider"></div>
             </div>
             <div className="reviews-container">
-              {formatReviews(hotel.reviews).map((review) => (
-                <div key={review.id} className="review-card">
+              {parsedReviews.map((review, index) => (
+                <div key={index} className="review-card">
                   <div className="review-header">
                     <div className="reviewer-info">
                       <div className="reviewer-avatar">
                         <FaUser />
                       </div>
                       <div>
-                        <h4 className="reviewer-name">{review.author}</h4>
-                        <span className="review-date">{review.date}</span>
+                        <h4 className="reviewer-name">{review.customer}</h4>
+                        <span className="review-date">
+                          {new Date(review.date).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </span>
                       </div>
                     </div>
                     <div className="review-rating">
                       <FaStar className="review-star" />
-                      <span className="rating-value">
-                        {typeof review.rating === 'number' ? review.rating.toFixed(1) : review.rating}
-                      </span>
+                      <span className="rating-value">{review.rating}/5</span>
                     </div>
                   </div>
                   <div className="review-body">
                     <FaQuoteLeft className="quote-icon quote-left" />
-                    <p className="review-comment">{review.comment}</p>
+                    <p className="review-comment">{review.review}</p>
                   </div>
                 </div>
               ))}
             </div>
+          </div>
+        ) : (
+          <div className="reviews-section">
+            <div className="section-header">
+              <h2>Guest Reviews</h2>
+              <div className="header-divider"></div>
+            </div>
+            <p className="no-data-message">No reviews yet. Be the first to review this hotel!</p>
           </div>
         )}
       </div>
