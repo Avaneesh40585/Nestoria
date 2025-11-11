@@ -3,6 +3,16 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { hostAPI, hotelAPI, roomAPI, bookingAPI } from '../services/api';
 import { FaHotel, FaBed, FaCalendarCheck, FaRupeeSign, FaPlus, FaEdit, FaTrash, FaSave, FaTimes } from 'react-icons/fa';
 
+// Helper function to format date as DD/MM/YYYY
+const formatDisplayDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 const HostDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,6 +24,7 @@ const HostDashboard = () => {
   const [showAddHotel, setShowAddHotel] = useState(false);
   const [editingHotelId, setEditingHotelId] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [hotelFieldErrors, setHotelFieldErrors] = useState({});
   const [availableHotelAmenities] = useState([
     { id: 1, name: 'Wi-Fi' },
     { id: 2, name: 'Swimming Pool' },
@@ -35,6 +46,10 @@ const HostDashboard = () => {
     hotel_img: '',
     amenities: []
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [editImageFile, setEditImageFile] = useState(null);
+  const [editImagePreview, setEditImagePreview] = useState('');
 
   useEffect(() => {
     fetchDashboardData();
@@ -93,6 +108,9 @@ const HostDashboard = () => {
         hotel_img: '',
         amenities: []
       });
+      setImageFile(null);
+      setImagePreview('');
+      setHotelFieldErrors({});
       fetchDashboardData();
       
       if (viewRooms) {
@@ -129,23 +147,33 @@ const HostDashboard = () => {
       hotel_img: hotel.hotelimg,
       amenities: hotel.amenities || []
     });
+    // Set preview if there's an existing image
+    if (hotel.hotelimg) {
+      setEditImagePreview(hotel.hotelimg);
+    }
   };
 
   const handleSaveEdit = async (hotelId) => {
     try {
+      console.log('Updating hotel with data:', editForm);
       await hotelAPI.update(hotelId, editForm);
       alert('Hotel updated successfully!');
       setEditingHotelId(null);
+      setEditImageFile(null);
+      setEditImagePreview('');
       fetchDashboardData();
     } catch (error) {
       console.error('Error updating hotel:', error);
-      alert('Failed to update hotel');
+      const errorMessage = error.response?.data?.error || error.response?.data?.details || error.message || 'Failed to update hotel';
+      alert(`Failed to update hotel: ${errorMessage}`);
     }
   };
 
   const handleCancelEdit = () => {
     setEditingHotelId(null);
     setEditForm({});
+    setEditImageFile(null);
+    setEditImagePreview('');
   };
 
   const toggleHotelAmenity = (amenityId) => {
@@ -164,6 +192,180 @@ const HostDashboard = () => {
     } else {
       setEditForm({...editForm, amenities: [...amenities, amenityId]});
     }
+  };
+
+  const handleImageFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB');
+        return;
+      }
+      
+      setImageFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+        setHotelForm({...hotelForm, hotel_img: reader.result});
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview('');
+    setHotelForm({...hotelForm, hotel_img: ''});
+  };
+
+  const handleEditImageFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB');
+        return;
+      }
+      
+      setEditImageFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditImagePreview(reader.result);
+        setEditForm({...editForm, hotel_img: reader.result});
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveEditImage = () => {
+    setEditImageFile(null);
+    setEditImagePreview('');
+    setEditForm({...editForm, hotel_img: ''});
+  };
+
+  // Validation functions for Add Hotel form
+  const validateHotelName = (value) => {
+    if (!value || value.trim() === '') {
+      return 'Hotel name is required';
+    }
+    return '';
+  };
+
+  const validateHotelAddress = (value) => {
+    if (!value || value.trim() === '') {
+      return 'Hotel address is required';
+    }
+    return '';
+  };
+
+  const validateCheckinTime = (value) => {
+    if (!value || value === '') {
+      return 'Check-in time is required';
+    }
+    return '';
+  };
+
+  const validateCheckoutTime = (value) => {
+    if (!value || value === '') {
+      return 'Check-out time is required';
+    }
+    return '';
+  };
+
+  const validateContactNumber = (value) => {
+    if (!value || value.trim() === '') {
+      return 'Contact number is required';
+    }
+    // Must contain only 10 digits
+    if (!/^[0-9]{10}$/.test(value.trim())) {
+      return 'Contact number must contain exactly 10 digits';
+    }
+    return '';
+  };
+
+  const handleHotelFieldBlur = (field, value) => {
+    let error = '';
+    
+    switch (field) {
+      case 'hotel_name':
+        error = validateHotelName(value);
+        break;
+      case 'hotel_address':
+        error = validateHotelAddress(value);
+        break;
+      case 'checkin_time':
+        error = validateCheckinTime(value);
+        break;
+      case 'checkout_time':
+        error = validateCheckoutTime(value);
+        break;
+      case 'contact_receptionist':
+        error = validateContactNumber(value);
+        break;
+      default:
+        break;
+    }
+    
+    if (error) {
+      setHotelFieldErrors(prev => ({
+        ...prev,
+        [field]: error
+      }));
+    }
+  };
+
+  const handleHotelFieldChange = (field, value) => {
+    setHotelForm({...hotelForm, [field]: value});
+    
+    // Clear error for this field when user starts typing
+    if (hotelFieldErrors[field]) {
+      const newErrors = { ...hotelFieldErrors };
+      delete newErrors[field];
+      setHotelFieldErrors(newErrors);
+    }
+  };
+
+  const isHotelFormValid = () => {
+    // Check all required fields are filled
+    const requiredFieldsFilled = (
+      hotelForm.hotel_name && hotelForm.hotel_name.trim() !== '' &&
+      hotelForm.hotel_address && hotelForm.hotel_address.trim() !== '' &&
+      hotelForm.checkin_time && hotelForm.checkin_time !== '' &&
+      hotelForm.checkout_time && hotelForm.checkout_time !== '' &&
+      hotelForm.contact_receptionist && hotelForm.contact_receptionist.trim() !== ''
+    );
+    
+    if (!requiredFieldsFilled) return false;
+    
+    // Check if there are any validation errors
+    const hasErrors = Object.keys(hotelFieldErrors).length > 0;
+    if (hasErrors) return false;
+    
+    // Validate all required fields
+    const validHotelName = validateHotelName(hotelForm.hotel_name) === '';
+    const validAddress = validateHotelAddress(hotelForm.hotel_address) === '';
+    const validCheckinTime = validateCheckinTime(hotelForm.checkin_time) === '';
+    const validCheckoutTime = validateCheckoutTime(hotelForm.checkout_time) === '';
+    const validContactNumber = validateContactNumber(hotelForm.contact_receptionist) === '';
+    
+    return validHotelName && validAddress && validCheckinTime && validCheckoutTime && validContactNumber;
   };
 
   if (loading) {
@@ -197,7 +399,12 @@ const HostDashboard = () => {
             </button>
           </div>
           {activeTab === 'hotels' && (
-            <button className="add-hotel-btn" onClick={() => setShowAddHotel(!showAddHotel)}>
+            <button className="add-hotel-btn" onClick={() => {
+              setShowAddHotel(!showAddHotel);
+              setHotelFieldErrors({});
+              setImageFile(null);
+              setImagePreview('');
+            }}>
               <FaPlus /> {showAddHotel ? 'Hide Form' : 'Add New Hotel'}
             </button>
           )}
@@ -247,10 +454,25 @@ const HostDashboard = () => {
               <h2>My Hotels</h2>
               {showAddHotel && (
                 <div className="header-form-actions">
-                  <button type="submit" className="save-form-btn" onClick={handleAddHotel}>
+                  <button 
+                    type="submit" 
+                    className="save-form-btn" 
+                    onClick={handleAddHotel}
+                    disabled={!isHotelFormValid()}
+                    style={{
+                      opacity: !isHotelFormValid() ? 0.5 : 1,
+                      cursor: !isHotelFormValid() ? 'not-allowed' : 'pointer',
+                      backgroundColor: !isHotelFormValid() ? '#6c757d' : ''
+                    }}
+                  >
                     <FaSave /> Save
                   </button>
-                  <button type="button" className="cancel-form-btn" onClick={() => setShowAddHotel(false)}>
+                  <button type="button" className="cancel-form-btn" onClick={() => {
+                    setShowAddHotel(false);
+                    setHotelFieldErrors({});
+                    setImageFile(null);
+                    setImagePreview('');
+                  }}>
                     <FaTimes /> Cancel
                   </button>
                 </div>
@@ -266,18 +488,36 @@ const HostDashboard = () => {
                       <input
                         type="text"
                         value={hotelForm.hotel_name}
-                        onChange={(e) => setHotelForm({...hotelForm, hotel_name: e.target.value})}
+                        onChange={(e) => handleHotelFieldChange('hotel_name', e.target.value)}
+                        onBlur={(e) => handleHotelFieldBlur('hotel_name', e.target.value)}
+                        style={{
+                          border: hotelFieldErrors.hotel_name ? '2px solid #dc3545' : '1px solid #ced4da'
+                        }}
                         required
                       />
+                      {hotelFieldErrors.hotel_name && (
+                        <span style={{ color: '#dc3545', fontSize: '13px', marginTop: '4px', display: 'block' }}>
+                          {hotelFieldErrors.hotel_name}
+                        </span>
+                      )}
                     </div>
                     <div className="form-group">
                       <label>Address *</label>
                       <input
                         type="text"
                         value={hotelForm.hotel_address}
-                        onChange={(e) => setHotelForm({...hotelForm, hotel_address: e.target.value})}
+                        onChange={(e) => handleHotelFieldChange('hotel_address', e.target.value)}
+                        onBlur={(e) => handleHotelFieldBlur('hotel_address', e.target.value)}
+                        style={{
+                          border: hotelFieldErrors.hotel_address ? '2px solid #dc3545' : '1px solid #ced4da'
+                        }}
                         required
                       />
+                      {hotelFieldErrors.hotel_address && (
+                        <span style={{ color: '#dc3545', fontSize: '13px', marginTop: '4px', display: 'block' }}>
+                          {hotelFieldErrors.hotel_address}
+                        </span>
+                      )}
                     </div>
                     <div className="form-group">
                       <label>Description</label>
@@ -288,37 +528,135 @@ const HostDashboard = () => {
                       />
                     </div>
                     <div className="form-group">
-                      <label>Check-in Time</label>
+                      <label>Check-in Time *</label>
                       <input
                         type="time"
                         value={hotelForm.checkin_time}
-                        onChange={(e) => setHotelForm({...hotelForm, checkin_time: e.target.value})}
+                        onChange={(e) => handleHotelFieldChange('checkin_time', e.target.value)}
+                        onBlur={(e) => handleHotelFieldBlur('checkin_time', e.target.value)}
+                        style={{
+                          border: hotelFieldErrors.checkin_time ? '2px solid #dc3545' : '1px solid #ced4da'
+                        }}
                       />
+                      {hotelFieldErrors.checkin_time && (
+                        <span style={{ color: '#dc3545', fontSize: '13px', marginTop: '4px', display: 'block' }}>
+                          {hotelFieldErrors.checkin_time}
+                        </span>
+                      )}
                     </div>
                     <div className="form-group">
-                      <label>Check-out Time</label>
+                      <label>Check-out Time *</label>
                       <input
                         type="time"
                         value={hotelForm.checkout_time}
-                        onChange={(e) => setHotelForm({...hotelForm, checkout_time: e.target.value})}
+                        onChange={(e) => handleHotelFieldChange('checkout_time', e.target.value)}
+                        onBlur={(e) => handleHotelFieldBlur('checkout_time', e.target.value)}
+                        style={{
+                          border: hotelFieldErrors.checkout_time ? '2px solid #dc3545' : '1px solid #ced4da'
+                        }}
                       />
+                      {hotelFieldErrors.checkout_time && (
+                        <span style={{ color: '#dc3545', fontSize: '13px', marginTop: '4px', display: 'block' }}>
+                          {hotelFieldErrors.checkout_time}
+                        </span>
+                      )}
                     </div>
                     <div className="form-group">
-                      <label>Contact Number</label>
+                      <label>Contact Number *</label>
                       <input
                         type="tel"
                         value={hotelForm.contact_receptionist}
-                        onChange={(e) => setHotelForm({...hotelForm, contact_receptionist: e.target.value})}
+                        onChange={(e) => handleHotelFieldChange('contact_receptionist', e.target.value)}
+                        onBlur={(e) => handleHotelFieldBlur('contact_receptionist', e.target.value)}
+                        placeholder="e.g., 9876543210"
+                        style={{
+                          border: hotelFieldErrors.contact_receptionist ? '2px solid #dc3545' : '1px solid #ced4da'
+                        }}
                       />
+                      {hotelFieldErrors.contact_receptionist && (
+                        <span style={{ color: '#dc3545', fontSize: '13px', marginTop: '4px', display: 'block' }}>
+                          {hotelFieldErrors.contact_receptionist}
+                        </span>
+                      )}
                     </div>
-                    <div className="form-group">
-                      <label>Hotel Image URL</label>
-                      <input
-                        type="url"
-                        value={hotelForm.hotel_img}
-                        onChange={(e) => setHotelForm({...hotelForm, hotel_img: e.target.value})}
-                        placeholder="https://example.com/image.jpg"
-                      />
+                    <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Hotel Image *</label>
+                      
+                      {/* Image Preview */}
+                      {imagePreview && (
+                        <div style={{ marginBottom: '15px', position: 'relative' }}>
+                          <img 
+                            src={imagePreview} 
+                            alt="Hotel preview" 
+                            style={{ 
+                              width: '100%', 
+                              maxHeight: '300px', 
+                              objectFit: 'cover', 
+                              borderRadius: '8px',
+                              border: '1px solid #ced4da'
+                            }} 
+                          />
+                          <button
+                            type="button"
+                            onClick={handleRemoveImage}
+                            style={{
+                              position: 'absolute',
+                              top: '10px',
+                              right: '10px',
+                              background: '#dc3545',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: '30px',
+                              height: '30px',
+                              cursor: 'pointer',
+                              fontSize: '18px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                      
+                      {/* File Upload */}
+                      <div>
+                        <label 
+                          htmlFor="hotel-image-upload"
+                          style={{
+                            display: 'inline-block',
+                            padding: '10px 20px',
+                            backgroundColor: '#007bff',
+                            color: 'white',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#0056b3'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = '#007bff'}
+                        >
+                          📁 Choose Image from Files
+                        </label>
+                        <input
+                          id="hotel-image-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageFileChange}
+                          style={{ display: 'none' }}
+                        />
+                        <div style={{ marginTop: '8px' }}>
+                          <span style={{ fontSize: '13px', color: '#6c757d' }}>
+                            {imageFile ? `Selected: ${imageFile.name}` : 'No file chosen'}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '12px', color: '#6c757d', display: 'block', marginTop: '5px' }}>
+                          Max file size: 5MB. Supported formats: JPG, PNG, GIF
+                        </span>
+                      </div>
                     </div>
                     <div className="form-group" style={{ gridColumn: 'span 2' }}>
                       <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500' }}>Hotel Amenities</label>
@@ -416,13 +754,84 @@ const HostDashboard = () => {
                               onChange={(e) => setEditForm({...editForm, contact_receptionist: e.target.value})}
                             />
                           </div>
-                          <div className="form-group">
-                            <label>Hotel Image URL</label>
-                            <input
-                              type="url"
-                              value={editForm.hotel_img || ''}
-                              onChange={(e) => setEditForm({...editForm, hotel_img: e.target.value})}
-                            />
+                          <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Hotel Image</label>
+                            
+                            {/* Image Preview */}
+                            {editImagePreview && (
+                              <div style={{ marginBottom: '15px', position: 'relative' }}>
+                                <img 
+                                  src={editImagePreview} 
+                                  alt="Hotel preview" 
+                                  style={{ 
+                                    width: '100%', 
+                                    maxHeight: '300px', 
+                                    objectFit: 'cover', 
+                                    borderRadius: '8px',
+                                    border: '1px solid #ced4da'
+                                  }} 
+                                />
+                                <button
+                                  type="button"
+                                  onClick={handleRemoveEditImage}
+                                  style={{
+                                    position: 'absolute',
+                                    top: '10px',
+                                    right: '10px',
+                                    background: '#dc3545',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '50%',
+                                    width: '30px',
+                                    height: '30px',
+                                    cursor: 'pointer',
+                                    fontSize: '18px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            )}
+                            
+                            {/* File Upload */}
+                            <div>
+                              <label 
+                                htmlFor="edit-hotel-image-upload"
+                                style={{
+                                  display: 'inline-block',
+                                  padding: '10px 20px',
+                                  backgroundColor: '#007bff',
+                                  color: 'white',
+                                  borderRadius: '6px',
+                                  cursor: 'pointer',
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  transition: 'background-color 0.2s'
+                                }}
+                                onMouseEnter={(e) => e.target.style.backgroundColor = '#0056b3'}
+                                onMouseLeave={(e) => e.target.style.backgroundColor = '#007bff'}
+                              >
+                                📁 Choose Image from Files
+                              </label>
+                              <input
+                                id="edit-hotel-image-upload"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleEditImageFileChange}
+                                style={{ display: 'none' }}
+                              />
+                              <div style={{ marginTop: '8px' }}>
+                                <span style={{ fontSize: '13px', color: '#6c757d' }}>
+                                  {editImageFile ? `Selected: ${editImageFile.name}` : (editImagePreview ? 'Current image' : 'No file chosen')}
+                                </span>
+                              </div>
+                              <span style={{ fontSize: '12px', color: '#6c757d', display: 'block', marginTop: '5px' }}>
+                                Max file size: 5MB. Supported formats: JPG, PNG, GIF
+                              </span>
+                            </div>
                           </div>
                           <div className="form-group" style={{ gridColumn: 'span 2' }}>
                             <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500' }}>Hotel Amenities</label>
@@ -454,6 +863,24 @@ const HostDashboard = () => {
                       </div>
                     ) : (
                       <>
+                        {hotel.hotelimg && (
+                          <div style={{ marginBottom: '15px' }}>
+                            <img 
+                              src={hotel.hotelimg} 
+                              alt={hotel.hotelname}
+                              style={{ 
+                                width: '100%', 
+                                height: '200px', 
+                                objectFit: 'cover', 
+                                borderRadius: '8px',
+                                border: '1px solid #ced4da'
+                              }}
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
                         <div className="hotel-item-header">
                           <h3>{hotel.hotelname}</h3>
                           <div className="hotel-actions">
@@ -486,8 +913,8 @@ const HostDashboard = () => {
                             </button>
                           </div>
                         </div>
-                        <p>{hotel.hoteladdress}</p>
-                        <p>Rating: {hotel.overallrating || 'N/A'}</p>
+                        <p><strong>Address:</strong> {hotel.hoteladdress}</p>
+                        <p><strong>Rating:</strong> {hotel.overallrating || 'Not rated yet'}</p>
                       </>
                     )}
                   </div>
@@ -524,8 +951,8 @@ const HostDashboard = () => {
                         <td>{booking.customer_name}</td>
                         <td>{booking.hotelname}</td>
                         <td>{booking.roomnumber}</td>
-                        <td>{new Date(booking.checkin_date).toLocaleDateString()}</td>
-                        <td>{new Date(booking.checkout_date).toLocaleDateString()}</td>
+                        <td>{formatDisplayDate(booking.checkin_date)}</td>
+                        <td>{formatDisplayDate(booking.checkout_date)}</td>
                         <td>₹{Math.floor(booking.final_amount)}</td>
                         <td>
                           <span className={`status-badge ${booking.booking_status ? 'active' : 'cancelled'}`}>

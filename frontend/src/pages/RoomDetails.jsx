@@ -4,6 +4,16 @@ import { roomAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { FaStar, FaRupeeSign, FaEye, FaBed, FaWifi, FaSwimmingPool, FaParking, FaDumbbell, FaUtensils, FaSpa, FaCoffee, FaTv, FaConciergeBell, FaShieldAlt, FaSnowflake, FaHotTub, FaTshirt, FaGlassMartini, FaQuoteLeft, FaUser } from 'react-icons/fa';
 
+// Helper function to format date as DD/MM/YYYY
+const formatDisplayDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 const RoomDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -213,7 +223,9 @@ const RoomDetails = () => {
         roomId: room.roomid,
         roomType: room.room_type,
         hotelName: room.hotelname,
-        costPerNight: room.cost_per_night
+        costPerNight: room.cost_per_night,
+        checkinDate: checkinParam || null,
+        checkoutDate: checkoutParam || null
       } 
     });
   };
@@ -350,11 +362,7 @@ const RoomDetails = () => {
                             <div>
                               <h4 className="reviewer-name">{review.customer}</h4>
                               <span className="review-date">
-                                {new Date(review.date).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric'
-                                })}
+                                {formatDisplayDate(review.date)}
                               </span>
                             </div>
                           </div>

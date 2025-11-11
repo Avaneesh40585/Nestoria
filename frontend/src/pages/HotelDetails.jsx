@@ -4,6 +4,16 @@ import { hotelAPI } from '../services/api';
 import RoomCard from '../components/RoomCard';
 import { FaStar, FaMapMarkerAlt, FaClock, FaPhoneAlt, FaWifi, FaSwimmingPool, FaParking, FaDumbbell, FaUtensils, FaSpa, FaCoffee, FaTv, FaConciergeBell, FaShieldAlt, FaSnowflake, FaHotTub, FaTshirt, FaGlassMartini, FaQuoteLeft, FaUser } from 'react-icons/fa';
 
+// Helper function to format date as DD/MM/YYYY
+const formatDisplayDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 const HotelDetails = () => {
   const { id } = useParams();
   const [hotel, setHotel] = useState(null);
@@ -12,6 +22,11 @@ const HotelDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [parsedReviews, setParsedReviews] = useState([]);
+
+  // Get check-in/check-out dates from URL params to pass to room details
+  const searchParams = new URLSearchParams(window.location.search);
+  const checkinParam = searchParams.get('checkin');
+  const checkoutParam = searchParams.get('checkout');
 
   // Function to scroll to reviews section
   const scrollToReviews = () => {
@@ -319,7 +334,7 @@ const HotelDetails = () => {
           {rooms.length > 0 ? (
             <div className="rooms-grid">
               {rooms.map((room) => (
-                <RoomCard key={room.roomid} room={room} />
+                <RoomCard key={room.roomid} room={room} checkinDate={checkinParam} checkoutDate={checkoutParam} />
               ))}
             </div>
           ) : (
@@ -344,11 +359,7 @@ const HotelDetails = () => {
                       <div>
                         <h4 className="reviewer-name">{review.customer}</h4>
                         <span className="review-date">
-                          {new Date(review.date).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
+                          {formatDisplayDate(review.date)}
                         </span>
                       </div>
                     </div>

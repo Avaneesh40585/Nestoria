@@ -13,7 +13,7 @@ const AddRooms = () => {
   const [editingRoomId, setEditingRoomId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [showAddForm, setShowAddForm] = useState(false);
-  const [validationErrors, setValidationErrors] = useState({});
+  const [fieldErrors, setFieldErrors] = useState({});
   const [availableAmenities] = useState([
     { id: 1, name: 'Wi-Fi' },
     { id: 13, name: 'Air Conditioning' },
@@ -38,8 +38,8 @@ const AddRooms = () => {
     } else {
       navigate('/host/dashboard');
     }
-    // Ensure validation errors are cleared on mount
-    setValidationErrors({});
+    // Clear field errors on mount
+    setFieldErrors({});
   }, [hotelId]);
 
   const fetchHotelDetails = async () => {
@@ -84,16 +84,66 @@ const AddRooms = () => {
       room_status: 'Available',
       amenities: []
     }]);
-    // Clear any existing validation errors when adding a new room
-    setValidationErrors({});
+    // Clear field errors when adding a new room
+    setFieldErrors({});
+  };
+
+  // Validation functions
+  const validateRoomNumber = (value) => {
+    if (!value || value.trim() === '') {
+      return 'Room number is required';
+    }
+    // Only allow numbers
+    if (!/^[0-9]+$/.test(value.trim())) {
+      return 'Room number must contain only numbers';
+    }
+    return '';
+  };
+
+  const validateRoomType = (value) => {
+    if (!value || value === '') {
+      return 'Please select a room type';
+    }
+    return '';
+  };
+
+  const validateCostPerNight = (value) => {
+    if (!value || value === '') {
+      return 'Cost per night is required';
+    }
+    if (isNaN(value)) {
+      return 'Cost must be a valid number';
+    }
+    const cost = parseFloat(value);
+    if (cost <= 0) {
+      return 'Cost must be greater than 0';
+    }
+    if (cost > 1000000) {
+      return 'Cost seems too high. Please check the value';
+    }
+    return '';
+  };
+
+  const validatePositionView = (value) => {
+    if (!value || value === '') {
+      return 'Please select a position/view';
+    }
+    return '';
+  };
+
+  const validateRoomStatus = (value) => {
+    if (!value || value === '') {
+      return 'Please select a room status';
+    }
+    return '';
   };
 
   const removeRoomForm = (index) => {
     if (rooms.length > 1) {
       const updatedRooms = rooms.filter((_, i) => i !== index);
       setRooms(updatedRooms);
-      // Clear validation errors when removing a room
-      setValidationErrors({});
+      // Clear field errors when removing a room
+      setFieldErrors({});
     }
   };
 
@@ -102,16 +152,50 @@ const AddRooms = () => {
     updatedRooms[index][field] = value;
     setRooms(updatedRooms);
     
-    // Clear validation error for this field when user starts typing
-    if (validationErrors[index]?.[field]) {
-      const newErrors = { ...validationErrors };
+    // Clear error for this field when user starts typing
+    if (fieldErrors[index]?.[field]) {
+      const newErrors = { ...fieldErrors };
       if (newErrors[index]) {
         delete newErrors[index][field];
         if (Object.keys(newErrors[index]).length === 0) {
           delete newErrors[index];
         }
-        setValidationErrors(newErrors);
+        setFieldErrors(newErrors);
       }
+    }
+  };
+
+  const handleRoomBlur = (index, field, value) => {
+    let error = '';
+    
+    switch (field) {
+      case 'room_number':
+        error = validateRoomNumber(value);
+        break;
+      case 'room_type':
+        error = validateRoomType(value);
+        break;
+      case 'cost_per_night':
+        error = validateCostPerNight(value);
+        break;
+      case 'position_view':
+        error = validatePositionView(value);
+        break;
+      case 'room_status':
+        error = validateRoomStatus(value);
+        break;
+      default:
+        break;
+    }
+    
+    if (error) {
+      setFieldErrors(prev => ({
+        ...prev,
+        [index]: {
+          ...(prev[index] || {}),
+          [field]: error
+        }
+      }));
     }
   };
 
@@ -140,6 +224,27 @@ const AddRooms = () => {
       // Add amenity
       setEditForm({...editForm, amenities: [...amenities, amenityId]});
     }
+  };
+
+  // Check if a room form has all required fields filled and no errors
+  const isRoomFormValid = (room, index) => {
+    // Check if all required fields are filled
+    const allFilled = (
+      room.room_number && room.room_number.trim() !== '' &&
+      room.room_type && room.room_type !== '' &&
+      room.cost_per_night && room.cost_per_night !== '' &&
+      room.position_view && room.position_view !== '' &&
+      room.room_status && room.room_status !== ''
+    );
+    
+    // Check if there are any validation errors for this room
+    const hasErrors = fieldErrors[index] && Object.keys(fieldErrors[index]).length > 0;
+    
+    // Also validate all fields to ensure data is correct
+    const validRoomNumber = validateRoomNumber(room.room_number) === '';
+    const validCost = validateCostPerNight(room.cost_per_night) === '';
+    
+    return allFilled && !hasErrors && validRoomNumber && validCost;
   };
 
   const handleSubmit = async (e) => {
@@ -189,30 +294,6 @@ const AddRooms = () => {
 
   const handleSaveIndividualRoom = async (index) => {
     const room = rooms[index];
-    
-    // Validate required fields (all except room_desc)
-    const errors = {};
-    if (!room.room_number || room.room_number.trim() === '') {
-      errors.room_number = 'Please fill this field';
-    }
-    if (!room.room_type || room.room_type === '') {
-      errors.room_type = 'Please fill this field';
-    }
-    if (!room.cost_per_night || room.cost_per_night === '') {
-      errors.cost_per_night = 'Please fill this field';
-    }
-    if (!room.position_view || room.position_view === '') {
-      errors.position_view = 'Please fill this field';
-    }
-    if (!room.room_status || room.room_status === '') {
-      errors.room_status = 'Please fill this field';
-    }
-    
-    if (Object.keys(errors).length > 0) {
-      // Only set errors for this specific index
-      setValidationErrors({ [index]: errors });
-      return;
-    }
 
     try {
       await roomAPI.create({
@@ -229,7 +310,7 @@ const AddRooms = () => {
       alert('Room added successfully!');
       
       // Clear all errors after successful save
-      setValidationErrors({});
+      setFieldErrors({});
       
       // Hide the add form after successful save
       setShowAddForm(false);
@@ -384,18 +465,21 @@ const AddRooms = () => {
                   <button
                     type="button"
                     onClick={() => handleSaveIndividualRoom(index)}
+                    disabled={!isRoomFormValid(room, index)}
                     style={{
                       padding: '8px 16px',
-                      backgroundColor: '#007bff',
+                      backgroundColor: !isRoomFormValid(room, index) ? '#cccccc' : '#007bff',
                       color: 'white',
                       border: 'none',
                       borderRadius: '5px',
-                      cursor: 'pointer',
+                      cursor: !isRoomFormValid(room, index) ? 'not-allowed' : 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '5px',
                       fontSize: '14px',
-                      fontWeight: '500'
+                      fontWeight: '500',
+                      opacity: !isRoomFormValid(room, index) ? 0.6 : 1,
+                      transition: 'all 0.2s ease'
                     }}
                   >
                     <FaSave /> Save
@@ -429,44 +513,22 @@ const AddRooms = () => {
                     type="text"
                     value={room.room_number}
                     onChange={(e) => handleRoomChange(index, 'room_number', e.target.value)}
-                    placeholder="e.g., 101"
+                    onBlur={(e) => handleRoomBlur(index, 'room_number', e.target.value)}
+                    placeholder="e.g., 101 or 205"
                     style={{
                       width: '100%',
                       padding: '10px 12px',
-                      border: validationErrors[index]?.room_number ? '1px solid #dc3545' : '1px solid #ced4da',
+                      border: fieldErrors[index]?.room_number ? '2px solid #dc3545' : '1px solid #ced4da',
                       borderRadius: '6px',
                       fontSize: '14px',
                       transition: 'border-color 0.15s ease-in-out',
                       outline: 'none'
                     }}
                   />
-                  {validationErrors[index]?.room_number && (
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '8px',
-                      marginTop: '8px',
-                      padding: '10px 14px',
-                      backgroundColor: '#fff',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                    }}>
-                      <div style={{
-                        width: '28px',
-                        height: '28px',
-                        backgroundColor: '#ff9800',
-                        borderRadius: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '18px',
-                        fontWeight: 'bold',
-                        color: '#fff',
-                        flexShrink: 0
-                      }}>!</div>
-                      <span style={{ fontSize: '14px', color: '#333' }}>Please fill out this field.</span>
-                    </div>
+                  {fieldErrors[index]?.room_number && (
+                    <span style={{ color: '#dc3545', fontSize: '13px', marginTop: '4px', display: 'block' }}>
+                      {fieldErrors[index].room_number}
+                    </span>
                   )}
                 </div>
 
@@ -475,10 +537,11 @@ const AddRooms = () => {
                   <select
                     value={room.room_type}
                     onChange={(e) => handleRoomChange(index, 'room_type', e.target.value)}
+                    onBlur={(e) => handleRoomBlur(index, 'room_type', e.target.value)}
                     style={{
                       width: '100%',
                       padding: '10px 12px',
-                      border: validationErrors[index]?.room_type ? '1px solid #dc3545' : '1px solid #ced4da',
+                      border: fieldErrors[index]?.room_type ? '2px solid #dc3545' : '1px solid #ced4da',
                       borderRadius: '6px',
                       fontSize: '14px',
                       backgroundColor: 'white',
@@ -495,33 +558,10 @@ const AddRooms = () => {
                     <option value="Deluxe">Deluxe</option>
                     <option value="Family">Family</option>
                   </select>
-                  {validationErrors[index]?.room_type && (
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '8px',
-                      marginTop: '8px',
-                      padding: '10px 14px',
-                      backgroundColor: '#fff',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                    }}>
-                      <div style={{
-                        width: '28px',
-                        height: '28px',
-                        backgroundColor: '#ff9800',
-                        borderRadius: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '18px',
-                        fontWeight: 'bold',
-                        color: '#fff',
-                        flexShrink: 0
-                      }}>!</div>
-                      <span style={{ fontSize: '14px', color: '#333' }}>Please fill out this field.</span>
-                    </div>
+                  {fieldErrors[index]?.room_type && (
+                    <span style={{ color: '#dc3545', fontSize: '13px', marginTop: '4px', display: 'block' }}>
+                      {fieldErrors[index].room_type}
+                    </span>
                   )}
                 </div>
 
@@ -532,44 +572,22 @@ const AddRooms = () => {
                     step="0.01"
                     value={room.cost_per_night}
                     onChange={(e) => handleRoomChange(index, 'cost_per_night', e.target.value)}
+                    onBlur={(e) => handleRoomBlur(index, 'cost_per_night', e.target.value)}
                     placeholder="e.g., 2500"
                     style={{
                       width: '100%',
                       padding: '10px 12px',
-                      border: validationErrors[index]?.cost_per_night ? '1px solid #dc3545' : '1px solid #ced4da',
+                      border: fieldErrors[index]?.cost_per_night ? '2px solid #dc3545' : '1px solid #ced4da',
                       borderRadius: '6px',
                       fontSize: '14px',
                       transition: 'border-color 0.15s ease-in-out',
                       outline: 'none'
                     }}
                   />
-                  {validationErrors[index]?.cost_per_night && (
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '8px',
-                      marginTop: '8px',
-                      padding: '10px 14px',
-                      backgroundColor: '#fff',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                    }}>
-                      <div style={{
-                        width: '28px',
-                        height: '28px',
-                        backgroundColor: '#ff9800',
-                        borderRadius: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '18px',
-                        fontWeight: 'bold',
-                        color: '#fff',
-                        flexShrink: 0
-                      }}>!</div>
-                      <span style={{ fontSize: '14px', color: '#333' }}>Please fill out this field.</span>
-                    </div>
+                  {fieldErrors[index]?.cost_per_night && (
+                    <span style={{ color: '#dc3545', fontSize: '13px', marginTop: '4px', display: 'block' }}>
+                      {fieldErrors[index].cost_per_night}
+                    </span>
                   )}
                 </div>
 
@@ -578,10 +596,11 @@ const AddRooms = () => {
                   <select
                     value={room.position_view}
                     onChange={(e) => handleRoomChange(index, 'position_view', e.target.value)}
+                    onBlur={(e) => handleRoomBlur(index, 'position_view', e.target.value)}
                     style={{
                       width: '100%',
                       padding: '10px 12px',
-                      border: validationErrors[index]?.position_view ? '1px solid #dc3545' : '1px solid #ced4da',
+                      border: fieldErrors[index]?.position_view ? '2px solid #dc3545' : '1px solid #ced4da',
                       borderRadius: '6px',
                       fontSize: '14px',
                       backgroundColor: 'white',
@@ -599,33 +618,10 @@ const AddRooms = () => {
                     <option value="Pool View">Pool View</option>
                     <option value="No View">No View</option>
                   </select>
-                  {validationErrors[index]?.position_view && (
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '8px',
-                      marginTop: '8px',
-                      padding: '10px 14px',
-                      backgroundColor: '#fff',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                    }}>
-                      <div style={{
-                        width: '28px',
-                        height: '28px',
-                        backgroundColor: '#ff9800',
-                        borderRadius: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '18px',
-                        fontWeight: 'bold',
-                        color: '#fff',
-                        flexShrink: 0
-                      }}>!</div>
-                      <span style={{ fontSize: '14px', color: '#333' }}>Please fill out this field.</span>
-                    </div>
+                  {fieldErrors[index]?.position_view && (
+                    <span style={{ color: '#dc3545', fontSize: '13px', marginTop: '4px', display: 'block' }}>
+                      {fieldErrors[index].position_view}
+                    </span>
                   )}
                 </div>
 
@@ -634,10 +630,11 @@ const AddRooms = () => {
                   <select
                     value={room.room_status}
                     onChange={(e) => handleRoomChange(index, 'room_status', e.target.value)}
+                    onBlur={(e) => handleRoomBlur(index, 'room_status', e.target.value)}
                     style={{
                       width: '100%',
                       padding: '10px 12px',
-                      border: validationErrors[index]?.room_status ? '1px solid #dc3545' : '1px solid #ced4da',
+                      border: fieldErrors[index]?.room_status ? '2px solid #dc3545' : '1px solid #ced4da',
                       borderRadius: '6px',
                       fontSize: '14px',
                       backgroundColor: 'white',
@@ -651,33 +648,10 @@ const AddRooms = () => {
                     <option value="Occupied">Occupied</option>
                     <option value="Maintenance">Maintenance</option>
                   </select>
-                  {validationErrors[index]?.room_status && (
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '8px',
-                      marginTop: '8px',
-                      padding: '10px 14px',
-                      backgroundColor: '#fff',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                    }}>
-                      <div style={{
-                        width: '28px',
-                        height: '28px',
-                        backgroundColor: '#ff9800',
-                        borderRadius: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '18px',
-                        fontWeight: 'bold',
-                        color: '#fff',
-                        flexShrink: 0
-                      }}>!</div>
-                      <span style={{ fontSize: '14px', color: '#333' }}>Please fill out this field.</span>
-                    </div>
+                  {fieldErrors[index]?.room_status && (
+                    <span style={{ color: '#dc3545', fontSize: '13px', marginTop: '4px', display: 'block' }}>
+                      {fieldErrors[index].room_status}
+                    </span>
                   )}
                 </div>
 

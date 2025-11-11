@@ -121,15 +121,6 @@ const LoginSignup = () => {
     
     // Clear general error
     setError('');
-    
-    // Validate field on change (only for signup)
-    if (!isLogin) {
-      const fieldError = validateField(name, value);
-      setFieldErrors(prev => ({
-        ...prev,
-        [name]: fieldError
-      }));
-    }
   };
 
   const handleBlur = (e) => {
@@ -143,50 +134,46 @@ const LoginSignup = () => {
     }
   };
 
+  // Check if all signup fields are filled and valid
+  const isSignupFormValid = () => {
+    if (isLogin) return true; // For login, we don't need all fields
+    
+    // Check if all required fields are filled
+    const requiredFields = ['full_name', 'email', 'password', 'phone_number', 'gender', 'age', 'address', 'identity_no'];
+    const allFieldsFilled = requiredFields.every(field => formData[field] && formData[field].toString().trim() !== '');
+    
+    if (!allFieldsFilled) return false;
+    
+    // Check if any field has validation errors
+    const hasErrors = requiredFields.some(field => {
+      const error = validateField(field, formData[field]);
+      return error !== '';
+    });
+    
+    return !hasErrors;
+  };
+
+  // Check if login fields are filled and valid
+  const isLoginFormValid = () => {
+    if (!isLogin) return true; // For signup, use different validation
+    
+    // Check if email and password are filled
+    if (!formData.email || !formData.email.trim()) return false;
+    if (!formData.password || !formData.password.trim()) return false;
+    
+    // Validate email format
+    const emailError = validateEmail(formData.email);
+    if (emailError) return false;
+    
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setFieldErrors({});
 
     try {
-      // Validate all fields for signup
-      if (!isLogin) {
-        const errors = {};
-        Object.keys(formData).forEach(key => {
-          if (key !== 'email' && key !== 'password') {
-            const error = validateField(key, formData[key]);
-            if (error) errors[key] = error;
-          }
-        });
-        
-        // Always validate email and password
-        const emailError = validateEmail(formData.email);
-        const passwordError = validatePassword(formData.password);
-        if (emailError) errors.email = emailError;
-        if (passwordError) errors.password = passwordError;
-        
-        if (Object.keys(errors).length > 0) {
-          setFieldErrors(errors);
-          setError('Please fix the errors before submitting');
-          setLoading(false);
-          return;
-        }
-      } else {
-        // For login, just validate email and password
-        const emailError = validateEmail(formData.email);
-        if (emailError) {
-          setError(emailError);
-          setLoading(false);
-          return;
-        }
-        if (!formData.password) {
-          setError('Password is required');
-          setLoading(false);
-          return;
-        }
-      }
-
       let response;
       
       if (isLogin) {
@@ -402,7 +389,11 @@ const LoginSignup = () => {
               {fieldErrors.password && <span className="field-error">{fieldErrors.password}</span>}
             </div>
 
-            <button type="submit" className="submit-btn" disabled={loading}>
+            <button 
+              type="submit" 
+              className="submit-btn" 
+              disabled={loading || (isLogin ? !isLoginFormValid() : !isSignupFormValid())}
+            >
               {loading ? 'Please wait...' : (isLogin ? 'Login' : 'Sign Up')}
             </button>
           </form>

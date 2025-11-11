@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaStar, FaRupeeSign, FaEye } from 'react-icons/fa';
 
-const RoomCard = ({ room }) => {
+const RoomCard = ({ room, checkinDate, checkoutDate }) => {
   const navigate = useNavigate();
   
   // Validate and provide defaults for room data
@@ -17,7 +17,15 @@ const RoomCard = ({ room }) => {
 
   const handleViewDetails = () => {
     if (roomId) {
-      navigate(`/room/${roomId}`);
+      // Build URL with date params if they exist
+      let url = `/room/${roomId}`;
+      if (checkinDate || checkoutDate) {
+        const params = new URLSearchParams();
+        if (checkinDate) params.append('checkin', checkinDate);
+        if (checkoutDate) params.append('checkout', checkoutDate);
+        url += `?${params.toString()}`;
+      }
+      navigate(url);
     }
   };
 

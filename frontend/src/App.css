@@ -988,8 +988,10 @@
 }
 
 .submit-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+  background: #cccccc;
+  transform: none;
 }
 
 .divider {

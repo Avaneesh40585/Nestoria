@@ -5,6 +5,22 @@ import DatePicker from 'react-datepicker';
 import { FaCalendarAlt, FaRupeeSign, FaCheckCircle } from 'react-icons/fa';
 import 'react-datepicker/dist/react-datepicker.css';
 
+// Helper function to parse date string in local timezone
+const parseLocalDate = (dateString) => {
+  if (!dateString) return null;
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
+// Helper function to format date as YYYY-MM-DD in local timezone
+const formatLocalDate = (date) => {
+  if (!date) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const BookingPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -15,9 +31,11 @@ const BookingPage = () => {
   const roomType = state.roomType || '';
   const hotelName = state.hotelName || '';
   const costPerNight = state.costPerNight || 0;
+  const searchCheckin = state.checkinDate || null;
+  const searchCheckout = state.checkoutDate || null;
 
-  const [checkinDate, setCheckinDate] = useState(null);
-  const [checkoutDate, setCheckoutDate] = useState(null);
+  const [checkinDate, setCheckinDate] = useState(parseLocalDate(searchCheckin));
+  const [checkoutDate, setCheckoutDate] = useState(parseLocalDate(searchCheckout));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -68,8 +86,8 @@ const BookingPage = () => {
       const amounts = calculateAmounts();
       const bookingData = {
         room_id: roomId,
-        checkin_date: checkinDate.toISOString().slice(0, 10),
-        checkout_date: checkoutDate.toISOString().slice(0, 10),
+        checkin_date: formatLocalDate(checkinDate),
+        checkout_date: formatLocalDate(checkoutDate),
         base_amount: parseFloat(amounts.baseAmount),
         tax_amount: parseFloat(amounts.taxAmount),
         final_amount: parseFloat(amounts.finalAmount)

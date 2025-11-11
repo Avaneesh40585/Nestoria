@@ -2,12 +2,20 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaStar, FaMapMarkerAlt, FaRupeeSign } from 'react-icons/fa';
 
-const HotelCard = ({ hotel }) => {
+const HotelCard = ({ hotel, checkinDate, checkoutDate }) => {
   const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
   
   const handleClick = () => {
-    navigate(`/hotel/${hotel.hotelid}`);
+    // Build URL with date params if they exist
+    let url = `/hotel/${hotel.hotelid}`;
+    if (checkinDate || checkoutDate) {
+      const params = new URLSearchParams();
+      if (checkinDate) params.append('checkin', checkinDate);
+      if (checkoutDate) params.append('checkout', checkoutDate);
+      url += `?${params.toString()}`;
+    }
+    navigate(url);
   };
 
   const handleViewDetails = (e) => {

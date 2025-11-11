@@ -2,6 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { customerAPI, bookingAPI, reviewAPI } from '../services/api';
 import { FaUser, FaEdit, FaSave, FaTimes, FaCalendarAlt, FaHotel, FaStar } from 'react-icons/fa';
 
+// Helper function to format date as DD/MM/YYYY
+const formatDisplayDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 const CustomerProfile = () => {
   const [profile, setProfile] = useState(null);
   const [bookings, setBookings] = useState([]);
@@ -391,12 +401,12 @@ const CustomerProfile = () => {
 
                       <div className="booking-details">
                         <p><strong>Room:</strong> {booking.roomnumber} - {booking.room_type}</p>
-                        <p><strong>Check-in:</strong> {new Date(booking.checkin_date).toLocaleDateString()}</p>
-                        <p><strong>Check-out:</strong> {new Date(booking.checkout_date).toLocaleDateString()}</p>
+                        <p><strong>Check-in:</strong> {formatDisplayDate(booking.checkin_date)}</p>
+                        <p><strong>Check-out:</strong> {formatDisplayDate(booking.checkout_date)}</p>
                         <p><strong>Total Amount:</strong> ₹{Math.floor(booking.final_amount)}</p>
                         <p><strong>Transaction ID:</strong> {booking.transactionid}</p>
                         <p className="booking-date">
-                          Booked on: {new Date(booking.booking_date).toLocaleString()}
+                          Booked on: {formatDisplayDate(booking.booking_date)}
                         </p>
                       </div>
 

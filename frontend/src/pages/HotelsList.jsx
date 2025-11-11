@@ -23,6 +23,10 @@ const HotelsList = () => {
   const [availableAreas, setAvailableAreas] = useState([]);
   const [searchedLocation, setSearchedLocation] = useState('');
 
+  // Get check-in/check-out dates from URL params to pass through
+  const checkinDate = searchParams.get('checkin');
+  const checkoutDate = searchParams.get('checkout');
+
   useEffect(() => {
     fetchHotels();
   }, [searchParams]);
@@ -213,7 +217,7 @@ const HotelsList = () => {
                 <p className="results-count">{filteredHotels.length} hotels found</p>
                 <div className="hotels-grid">
                   {filteredHotels.map((hotel) => (
-                    <HotelCard key={hotel.hotelid} hotel={hotel} />
+                    <HotelCard key={hotel.hotelid} hotel={hotel} checkinDate={checkinDate} checkoutDate={checkoutDate} />
                   ))}
                 </div>
               </>
