@@ -2,14 +2,14 @@ const pool = require('../config/database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Customer Registration
+// Customer Registration  
 exports.registerCustomer = async (req, res) => {
   try {
     const { full_name, email, password, phone_number, gender, age, address, identity_no } = req.body;
     
     console.log('Registration attempt - Customer:', { email, full_name });
 
-    // Check if email already exists
+    // Check if email already exists  
     const existingUser = await pool.query(
       'SELECT * FROM Customer WHERE Email = $1',
       [email]

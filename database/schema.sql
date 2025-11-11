@@ -14,7 +14,7 @@ DROP TABLE IF EXISTS Host CASCADE;
 DROP TABLE IF EXISTS Customer CASCADE;
 
 -- =============================================
--- Core Entity Tables: Customer & Host
+-- Core Entity Tables: Customer & Host 
 -- =============================================
 CREATE TABLE Customer (
     CustomerID SERIAL PRIMARY KEY,
@@ -84,9 +84,9 @@ CREATE TABLE Room (
     FOREIGN KEY (HotelID) REFERENCES Hotel(HotelID) ON DELETE CASCADE
 );
 
--- =============================================
+
 -- Amenities & Linking Tables
--- =============================================
+
 CREATE TABLE Amenities (
     AmenityID SERIAL PRIMARY KEY,
     Amenity_name VARCHAR(100) NOT NULL,
@@ -111,9 +111,9 @@ CREATE TABLE Room_Amenities_Relation (
     FOREIGN KEY (AmenityID) REFERENCES Amenities(AmenityID) ON DELETE CASCADE
 );
 
--- =============================================
+
 -- Transactional Table: Booking
--- =============================================
+
 CREATE TABLE Booking (
     BookingID SERIAL PRIMARY KEY,
     CustomerID INT,
@@ -138,3 +138,4 @@ CREATE INDEX idx_room_hotelid ON Room(HotelID);
 CREATE INDEX idx_booking_customerid ON Booking(CustomerID);
 CREATE INDEX idx_booking_roomid ON Booking(RoomID);
 CREATE INDEX idx_booking_dates ON Booking(checkin_date, checkout_date);
+    

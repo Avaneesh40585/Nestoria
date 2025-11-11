@@ -1005,10 +1005,15 @@ const AddRooms = () => {
                       </div>
                       <div>
                         <strong>Status:</strong> <span style={{ 
-                          padding: '4px 8px', 
-                          borderRadius: '4px', 
-                          backgroundColor: room.room_status === 'Available' ? '#d4edda' : '#f8d7da',
-                          color: room.room_status === 'Available' ? '#155724' : '#721c24'
+                          padding: '6px 14px', 
+                          borderRadius: '20px', 
+                          backgroundColor: room.room_status === 'Available' ? '#d1fae5' : '#fee2e2',
+                          color: room.room_status === 'Available' ? '#065f46' : '#991b1b',
+                          fontSize: '0.85rem',
+                          fontWeight: '600',
+                          whiteSpace: 'nowrap',
+                          display: 'inline-block',
+                          width: 'fit-content'
                         }}>{room.room_status || 'N/A'}</span>
                       </div>
                       <div style={{ gridColumn: 'span 2' }}>
