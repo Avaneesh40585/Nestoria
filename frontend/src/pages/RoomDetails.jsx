@@ -136,46 +136,6 @@ const RoomDetails = () => {
     fetchRoomDetails();
   }, [id]);
 
-  // Parse reviews when room data changes
-  useEffect(() => {
-    if (room?.room_review) {
-      const reviewsArray = room.room_review.split('\n').filter(r => r.trim());
-      const parsed = [];
-      
-      reviewsArray.forEach((reviewStr, index) => {
-        try {
-          // Try to parse as JSON first (new format)
-          const jsonReview = JSON.parse(reviewStr);
-          parsed.push(jsonReview);
-        } catch (e) {
-          // If not JSON, treat as old text format
-          // Check if it's in "Name: [Rating: X/5] text" format
-          const oldFormatMatch = reviewStr.match(/^(.+?):\s*\[Rating:\s*(\d+)\/5\]\s*(.+)$/);
-          if (oldFormatMatch) {
-            parsed.push({
-              customer: oldFormatMatch[1].trim(),
-              rating: parseInt(oldFormatMatch[2]),
-              review: oldFormatMatch[3].trim(),
-              date: new Date().toISOString()
-            });
-          } else {
-            // Plain text review without rating
-            parsed.push({
-              customer: 'Guest',
-              rating: room.overall_rating || 4,
-              review: reviewStr.trim(),
-              date: new Date().toISOString()
-            });
-          }
-        }
-      });
-      
-      setParsedReviews(parsed);
-    } else {
-      setParsedReviews([]);
-    }
-  }, [room]);
-
   const fetchRoomDetails = async () => {
     setLoading(true);
     setError(null);
@@ -185,6 +145,7 @@ const RoomDetails = () => {
       // Validate and set data
       const validatedRoom = validateRoomData(response.data?.room);
       const validatedAmenities = validateAmenities(response.data?.amenities);
+      const roomReviews = response.data?.reviews || [];
       
       if (!validatedRoom) {
         setError('Room data is incomplete or invalid');
@@ -194,6 +155,15 @@ const RoomDetails = () => {
       }
       
       setAmenities(validatedAmenities);
+      
+      // Set reviews with proper formatting
+      const formattedReviews = roomReviews.map(review => ({
+        customer: review.full_name || 'Guest',
+        rating: review.room_rating || 0,
+        review: review.room_review || '',
+        date: review.review_date || new Date().toISOString()
+      }));
+      setParsedReviews(formattedReviews);
     } catch (error) {
       console.error('Error fetching room details:', error);
       setError(error.response?.data?.message || 'Failed to load room details. Please try again later.');

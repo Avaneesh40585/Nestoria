@@ -213,13 +213,12 @@ const CustomerProfile = () => {
   };
 
   const handleSubmitReview = async () => {
-    if (reviewData.hotel_rating === 0 && reviewData.room_rating === 0) {
-      alert('Please provide at least one rating');
-      return;
-    }
-
-    if (!reviewData.hotel_review && !reviewData.room_review) {
-      alert('Please write at least one review');
+    // Allow submission if user provides either rating or review text for at least one category
+    const hasHotelInput = reviewData.hotel_rating > 0 || (reviewData.hotel_review && reviewData.hotel_review.trim());
+    const hasRoomInput = reviewData.room_rating > 0 || (reviewData.room_review && reviewData.room_review.trim());
+    
+    if (!hasHotelInput && !hasRoomInput) {
+      alert('Please provide at least a rating or review for the hotel or room');
       return;
     }
 
@@ -227,9 +226,9 @@ const CustomerProfile = () => {
       await reviewAPI.addReview({
         booking_id: currentBooking.bookingid,
         hotel_rating: reviewData.hotel_rating || null,
-        hotel_review: reviewData.hotel_review || null,
+        hotel_review: reviewData.hotel_review?.trim() || null,
         room_rating: reviewData.room_rating || null,
-        room_review: reviewData.room_review || null
+        room_review: reviewData.room_review?.trim() || null
       });
       
       // Clear the saved draft from localStorage after successful submission
@@ -305,8 +304,8 @@ const CustomerProfile = () => {
                     <label>Phone Number</label>
                     <input
                       type="tel"
-                      name="phonenumber"
-                      value={formData.phonenumber || ''}
+                      name="phone_number"
+                      value={formData.phone_number || ''}
                       onChange={handleChange}
                     />
                   </div>
@@ -355,7 +354,7 @@ const CustomerProfile = () => {
                   </div>
                   <div className="info-row">
                     <strong>Phone:</strong>
-                    <span>{profile?.phonenumber || 'N/A'}</span>
+                    <span>{profile?.phone_number || 'N/A'}</span>
                   </div>
                   <div className="info-row">
                     <strong>Gender:</strong>
@@ -404,7 +403,6 @@ const CustomerProfile = () => {
                         <p><strong>Check-in:</strong> {formatDisplayDate(booking.checkin_date)}</p>
                         <p><strong>Check-out:</strong> {formatDisplayDate(booking.checkout_date)}</p>
                         <p><strong>Total Amount:</strong> ₹{Math.floor(booking.final_amount)}</p>
-                        <p><strong>Transaction ID:</strong> {booking.transactionid}</p>
                         <p className="booking-date">
                           Booked on: {formatDisplayDate(booking.booking_date)}
                         </p>

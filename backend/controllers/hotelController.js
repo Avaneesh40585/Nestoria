@@ -78,8 +78,8 @@ exports.getHotelDetails = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Fetch hotel, amenities, and rooms in parallel
-    const [hotelQuery, amenitiesQuery, roomsQuery] = await Promise.all([
+    // Fetch hotel, amenities, rooms, and reviews in parallel
+    const [hotelQuery, amenitiesQuery, roomsQuery, reviewsQuery] = await Promise.all([
       pool.query('SELECT * FROM Hotel WHERE HotelID = $1', [id]),
       pool.query(
         `SELECT a.AmenityID, a.Amenity_Name, ha.Is_Available, ha.Additional_Info
@@ -91,6 +91,14 @@ exports.getHotelDetails = async (req, res) => {
       pool.query(
         'SELECT * FROM Room WHERE HotelID = $1 ORDER BY Cost_Per_Night',
         [id]
+      ),
+      pool.query(
+        `SELECT chr.Hotel_Review, chr.Hotel_Rating, chr.Review_Date, c.Full_Name
+         FROM Customer_Hotel_Review chr
+         INNER JOIN Customer c ON chr.CustomerID = c.CustomerID
+         WHERE chr.HotelID = $1
+         ORDER BY chr.Review_Date DESC`,
+        [id]
       )
     ]);
 
@@ -101,7 +109,8 @@ exports.getHotelDetails = async (req, res) => {
     res.json({
       hotel: hotelQuery.rows[0],
       amenities: amenitiesQuery.rows,
-      rooms: roomsQuery.rows
+      rooms: roomsQuery.rows,
+      reviews: reviewsQuery.rows
     });
   } catch (error) {
     console.error('Error fetching hotel details:', error);

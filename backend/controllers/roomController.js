@@ -18,19 +18,32 @@ exports.getRoomDetails = async (req, res) => {
       return res.status(404).json({ error: 'Room not found' });
     }
 
-    // Now get amenities using the HotelID from the room
+    // Now get amenities and reviews using the HotelID and RoomID from the room
     const hotelId = roomQuery.rows[0].hotelid;
-    const amenitiesQuery = await pool.query(
-      `SELECT a.AmenityID, a.Amenity_Name, ra.Is_Available, ra.Additional_Info
-       FROM Amenities a
-       INNER JOIN Room_Amenities ra ON a.AmenityID = ra.AmenityID
-       WHERE ra.HotelID = $1 AND ra.RoomID = $2`,
-      [hotelId, id]
-    );
+    const roomId = roomQuery.rows[0].roomid;
+    
+    const [amenitiesQuery, reviewsQuery] = await Promise.all([
+      pool.query(
+        `SELECT a.AmenityID, a.Amenity_Name, ra.Is_Available, ra.Additional_Info
+         FROM Amenities a
+         INNER JOIN Room_Amenities ra ON a.AmenityID = ra.AmenityID
+         WHERE ra.HotelID = $1 AND ra.RoomID = $2`,
+        [hotelId, roomId]
+      ),
+      pool.query(
+        `SELECT crr.Room_Review, crr.Room_Rating, crr.Review_Date, c.Full_Name
+         FROM Customer_Room_Review crr
+         INNER JOIN Customer c ON crr.CustomerID = c.CustomerID
+         WHERE crr.HotelID = $1 AND crr.RoomID = $2
+         ORDER BY crr.Review_Date DESC`,
+        [hotelId, roomId]
+      )
+    ]);
 
     res.json({
       room: roomQuery.rows[0],
-      amenities: amenitiesQuery.rows
+      amenities: amenitiesQuery.rows,
+      reviews: reviewsQuery.rows
     });
   } catch (error) {
     console.error('Error fetching room details:', error);

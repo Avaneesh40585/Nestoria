@@ -8,7 +8,7 @@ DROP FUNCTION IF EXISTS fn_update_hotel_overall_scores();
 CREATE OR REPLACE FUNCTION fn_update_hotel_overall_scores()
 RETURNS TRIGGER AS $$
 DECLARE
-    hotel_id_to_update INT;
+    hotel_id_to_update VARCHAR(12);
     avg_hotel_rating NUMERIC;
     total_review_count INT;
     avg_hotel_sentiment NUMERIC;

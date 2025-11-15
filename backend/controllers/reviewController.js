@@ -6,6 +6,15 @@ const addReview = async (req, res) => {
   const { booking_id, hotel_review, hotel_rating, room_review, room_rating } = req.body;
   const customerId = req.user.id;
 
+  console.log('Review submission request:', {
+    booking_id,
+    customerId,
+    hotel_review: hotel_review ? 'provided' : 'null',
+    hotel_rating,
+    room_review: room_review ? 'provided' : 'null',
+    room_rating
+  });
+
   try {
     // Verify the booking belongs to the customer
     const bookingCheck = await pool.query(
@@ -16,6 +25,7 @@ const addReview = async (req, res) => {
     );
 
     if (bookingCheck.rows.length === 0) {
+      console.log('Booking not found for:', booking_id, customerId);
       return res.status(404).json({ error: 'Booking not found or does not belong to you' });
     }
 
@@ -23,45 +33,52 @@ const addReview = async (req, res) => {
     const hotelId = booking.hotelid;
     const roomId = booking.roomid;
 
+    console.log('Booking details:', { hotelId, roomId, booking_status: booking.booking_status });
+
     // Check if booking is cancelled
     if (!booking.booking_status) {
       return res.status(400).json({ error: 'Cannot review a cancelled booking' });
     }
 
-    // Check if booking is eligible for review (Active or Completed, NOT Cancelled)
-    const today = new Date();
-    const checkinDate = new Date(booking.checkin_date);
-    
-    // Allow reviews only for Active (checked in) or Completed bookings
-    const isActive = checkinDate <= today;
-    
-    if (!isActive) {
-      return res.status(400).json({ error: 'You can only review after check-in or if booking is completed' });
-    }
+    // Allow reviews for all confirmed bookings (removed date restriction)
 
-    // Update hotel review if provided
-    if (hotel_review || hotel_rating) {
+    // Update hotel review if provided (only if there's actual content)
+    if ((hotel_review && hotel_review.trim()) || (hotel_rating && hotel_rating > 0)) {
       // Check if review already exists
       const existingReview = await pool.query(
         'SELECT * FROM Customer_Hotel_Review WHERE CustomerID = $1 AND HotelID = $2',
         [customerId, hotelId]
       );
 
+      // Calculate Hotel_Score from rating (convert 1-5 to score out of 100)
+      const hotelScore = hotel_rating && hotel_rating > 0 ? Math.round(hotel_rating * 20) : 0;
+      const reviewText = hotel_review && hotel_review.trim() ? hotel_review.trim() : '';
+      const reviewRating = hotel_rating && hotel_rating > 0 ? hotel_rating : 0;
+
+      console.log('Hotel review data:', { hotelScore, reviewText, reviewRating });
+
       if (existingReview.rows.length > 0) {
         // Update existing review
         await pool.query(
           `UPDATE Customer_Hotel_Review 
-           SET Hotel_Review = $1, Hotel_Rating = $2, Review_Date = CURRENT_TIMESTAMP
-           WHERE CustomerID = $3 AND HotelID = $4`,
-          [hotel_review, hotel_rating, customerId, hotelId]
+           SET Hotel_Review = COALESCE(NULLIF($1, ''), Hotel_Review), 
+               Hotel_Rating = CASE WHEN $2 > 0 THEN $2 ELSE Hotel_Rating END,
+               Hotel_Score = CASE WHEN $3 > 0 THEN $3 ELSE Hotel_Score END,
+               Review_Date = CURRENT_TIMESTAMP
+           WHERE CustomerID = $4 AND HotelID = $5`,
+          [reviewText, reviewRating, hotelScore, customerId, hotelId]
         );
+        console.log('Hotel review updated');
       } else {
-        // Insert new review
-        await pool.query(
-          `INSERT INTO Customer_Hotel_Review (CustomerID, HotelID, Hotel_Review, Hotel_Rating, Hotel_Score)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [customerId, hotelId, hotel_review, hotel_rating, hotel_rating ? Math.round(hotel_rating * 2) : null]
-        );
+        // Insert new review - only if we have rating or text
+        if (reviewRating > 0 || reviewText) {
+          await pool.query(
+            `INSERT INTO Customer_Hotel_Review (CustomerID, HotelID, Hotel_Review, Hotel_Rating, Hotel_Score)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [customerId, hotelId, reviewText || 'No comment', reviewRating || 3, hotelScore || 60]
+          );
+          console.log('Hotel review inserted');
+        }
       }
 
       // Calculate and update average hotel rating
@@ -81,29 +98,43 @@ const addReview = async (req, res) => {
       }
     }
 
-    // Update room review if provided
-    if (room_review || room_rating) {
+    // Update room review if provided (only if there's actual content)
+    if ((room_review && room_review.trim()) || (room_rating && room_rating > 0)) {
       // Check if review already exists
       const existingReview = await pool.query(
         'SELECT * FROM Customer_Room_Review WHERE CustomerID = $1 AND HotelID = $2 AND RoomID = $3',
         [customerId, hotelId, roomId]
       );
 
+      // Calculate Room_Score from rating (convert 1-5 to score out of 100)
+      const roomScore = room_rating && room_rating > 0 ? Math.round(room_rating * 20) : 0;
+      const reviewText = room_review && room_review.trim() ? room_review.trim() : '';
+      const reviewRating = room_rating && room_rating > 0 ? room_rating : 0;
+
+      console.log('Room review data:', { roomScore, reviewText, reviewRating });
+
       if (existingReview.rows.length > 0) {
         // Update existing review
         await pool.query(
           `UPDATE Customer_Room_Review 
-           SET Room_Review = $1, Room_Rating = $2, Review_Date = CURRENT_TIMESTAMP
-           WHERE CustomerID = $3 AND HotelID = $4 AND RoomID = $5`,
-          [room_review, room_rating, customerId, hotelId, roomId]
+           SET Room_Review = COALESCE(NULLIF($1, ''), Room_Review), 
+               Room_Rating = CASE WHEN $2 > 0 THEN $2 ELSE Room_Rating END,
+               Room_Score = CASE WHEN $3 > 0 THEN $3 ELSE Room_Score END,
+               Review_Date = CURRENT_TIMESTAMP
+           WHERE CustomerID = $4 AND HotelID = $5 AND RoomID = $6`,
+          [reviewText, reviewRating, roomScore, customerId, hotelId, roomId]
         );
+        console.log('Room review updated');
       } else {
-        // Insert new review
-        await pool.query(
-          `INSERT INTO Customer_Room_Review (CustomerID, HotelID, RoomID, Room_Review, Room_Rating, Room_Score)
-           VALUES ($1, $2, $3, $4, $5, $6)`,
-          [customerId, hotelId, roomId, room_review, room_rating, room_rating ? Math.round(room_rating * 2) : null]
-        );
+        // Insert new review - only if we have rating or text
+        if (reviewRating > 0 || reviewText) {
+          await pool.query(
+            `INSERT INTO Customer_Room_Review (CustomerID, HotelID, RoomID, Room_Review, Room_Rating, Room_Score)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [customerId, hotelId, roomId, reviewText || 'No comment', reviewRating || 3, roomScore || 60]
+          );
+          console.log('Room review inserted');
+        }
       }
 
       // Calculate and update average room rating
@@ -127,9 +158,20 @@ const addReview = async (req, res) => {
       message: 'Review submitted successfully',
       data: { hotelId, roomId }
     });
+    console.log('Review saved successfully for booking:', booking_id);
   } catch (error) {
     console.error('Error adding review:', error);
-    res.status(500).json({ error: 'Failed to save review', details: error.message });
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      constraint: error.constraint
+    });
+    res.status(500).json({ 
+      error: 'Failed to save review', 
+      details: error.message,
+      hint: error.detail || 'Please check your input and try again'
+    });
   }
 };
 

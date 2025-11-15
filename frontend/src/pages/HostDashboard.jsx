@@ -138,18 +138,18 @@ const HostDashboard = () => {
   const handleEditHotel = (hotel) => {
     setEditingHotelId(hotel.hotelid);
     setEditForm({
-      hotel_name: hotel.hotelname,
-      hotel_address: hotel.hoteladdress,
-      hotel_desc: hotel.hoteldesc,
+      hotel_name: hotel.hotel_name,
+      hotel_address: hotel.hotel_address,
+      hotel_desc: hotel.hotel_description,
       checkin_time: hotel.checkin_time,
       checkout_time: hotel.checkout_time,
       receptionist_number: hotel.receptionist_number,
-      hotel_img: hotel.hotelimg,
+      hotel_img: hotel.hotel_img,
       amenities: hotel.amenities || []
     });
     // Set preview if there's an existing image
-    if (hotel.hotelimg) {
-      setEditImagePreview(hotel.hotelimg);
+    if (hotel.hotel_img) {
+      setEditImagePreview(hotel.hotel_img);
     }
   };
 
@@ -867,7 +867,7 @@ const HostDashboard = () => {
                           <div style={{ marginBottom: '15px' }}>
                             <img 
                               src={hotel.hotelimg} 
-                              alt={hotel.hotelname}
+                              alt={hotel.hotel_name}
                               style={{ 
                                 width: '100%', 
                                 height: '200px', 
@@ -882,7 +882,7 @@ const HostDashboard = () => {
                           </div>
                         )}
                         <div className="hotel-item-header">
-                          <h3>{hotel.hotelname}</h3>
+                          <h3>{hotel.hotel_name}</h3>
                           <div className="hotel-actions">
                             <button 
                               className="add-rooms-btn" 
@@ -913,8 +913,31 @@ const HostDashboard = () => {
                             </button>
                           </div>
                         </div>
-                        <p><strong>Address:</strong> {hotel.hoteladdress}</p>
-                        <p><strong>Rating:</strong> {hotel.overallrating || 'Not rated yet'}</p>
+                        <p><strong>Address:</strong> {hotel.hotel_address}</p>
+                        <p><strong>Rating:</strong> {hotel.overall_rating || 'Not rated yet'}</p>
+                        {hotel.amenities && hotel.amenities.length > 0 && (
+                          <div style={{ marginTop: '10px' }}>
+                            <strong>Amenities:</strong>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '5px' }}>
+                              {hotel.amenities.map(amenityId => {
+                                const amenity = availableHotelAmenities.find(a => a.id === amenityId);
+                                return amenity ? (
+                                  <span 
+                                    key={amenityId}
+                                    style={{
+                                      padding: '4px 8px',
+                                      backgroundColor: '#e9ecef',
+                                      borderRadius: '4px',
+                                      fontSize: '0.85rem'
+                                    }}
+                                  >
+                                    {amenity.name}
+                                  </span>
+                                ) : null;
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
