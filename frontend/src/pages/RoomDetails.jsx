@@ -232,16 +232,18 @@ const RoomDetails = () => {
               <p className="hotel-name">{room.hotel_name}</p>
               <p className="hotel-address">{room.hotel_address}</p>
             </div>
-            <button className="see-reviews-btn-room" onClick={scrollToReviews}>
-              <FaStar /> See Reviews
-            </button>
-            <div className="room-rating-badge">
-              <FaStar className="star-icon" />
-              <span>
-                {room.overall_rating && !isNaN(room.overall_rating) 
-                  ? parseFloat(room.overall_rating).toFixed(1) 
-                  : 'Not Rated'}
-              </span>
+            <div className="rating-reviews-group">
+              <div className="room-rating-badge">
+                <FaStar className="star-icon" />
+                <span>
+                  {room.overall_rating && !isNaN(room.overall_rating) 
+                    ? parseFloat(room.overall_rating).toFixed(1) 
+                    : 'Not Rated'}
+                </span>
+              </div>
+              <button className="see-reviews-btn-room" onClick={scrollToReviews}>
+                <FaStar /> See Reviews
+              </button>
             </div>
           </div>
 

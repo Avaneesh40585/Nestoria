@@ -10,8 +10,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f5f7fa;
-  color: #333;
+  background-color: #0a0a0a;
+  color: #e0e0e0;
   line-height: 1.6;
 }
 
@@ -24,4 +24,5 @@ code {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: #0a0a0a;
 }

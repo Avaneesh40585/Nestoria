@@ -220,18 +220,20 @@ const HotelDetails = () => {
           <div className="container">
             <h1 className="hotel-title">{hotel.hotel_name}</h1>
             <div className="hotel-meta">
-              <span className="hotel-rating">
-                <FaStar /> 
-                {hotel.overall_rating && !isNaN(hotel.overall_rating) 
-                  ? parseFloat(hotel.overall_rating).toFixed(1) 
-                  : 'Not Rated'}
-              </span>
+              <div className="rating-reviews-group">
+                <span className="hotel-rating">
+                  <FaStar /> 
+                  {hotel.overall_rating && !isNaN(hotel.overall_rating) 
+                    ? parseFloat(hotel.overall_rating).toFixed(1) 
+                    : 'Not Rated'}
+                </span>
+                <button className="see-reviews-btn" onClick={scrollToReviews}>
+                  <FaStar /> See Reviews
+                </button>
+              </div>
               <span className="hotel-location">
                 <FaMapMarkerAlt /> {hotel.hotel_address}
               </span>
-              <button className="see-reviews-btn" onClick={scrollToReviews}>
-                <FaStar /> See Reviews
-              </button>
             </div>
           </div>
         </div>

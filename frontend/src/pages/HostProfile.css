@@ -4,6 +4,7 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  background-color: #0a0a0a;
 }
 
 .host-profile-page .container {
@@ -16,16 +17,21 @@
 .page-title {
   font-size: 1.75rem;
   margin-bottom: 1.5rem;
-  color: #333;
+  color: #ffffff;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #DAA520 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .profile-card {
-  background: white;
+  background: #1a1a1a;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 16px 0 rgba(255, 215, 0, 0.25);
   overflow: hidden;
   max-width: 550px;
   margin: 0 auto;
+  border: 1px solid #333333;
 }
 
 .card-header {
@@ -33,9 +39,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.25rem;
-  background: white;
-  color: #333;
-  border-bottom: 1px solid #e9ecef;
+  background: #1a1a1a;
+  color: #ffffff;
+  border-bottom: 1px solid #333333;
 }
 
 .card-header h2 {
@@ -44,12 +50,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  color: #ffffff;
 }
 
 .host-profile-page .edit-btn {
-  background: #007bff;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #DAA520 100%);
   color: white;
-  border: 1px solid #007bff;
+  border: 1px solid #FFD700;
   padding: 6px 12px !important;
   border-radius: 8px;
   cursor: pointer;
@@ -65,8 +72,8 @@
 }
 
 .host-profile-page .edit-btn:hover {
-  background: #0056b3;
-  border-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
 }
 
 .host-profile-page .edit-actions {
@@ -96,21 +103,24 @@
 }
 
 .host-profile-page .save-btn {
-  background: #28a745;
-  color: white;
+  background: var(--secondary-color);
+  color: #0a0a0a;
+  font-weight: 700;
 }
 
 .host-profile-page .save-btn:hover {
-  background: #218838;
+  box-shadow: 0 0 30px rgba(255, 165, 0, 0.6);
+  transform: translateY(-2px);
 }
 
 .host-profile-page .cancel-btn {
-  background: #6c757d;
-  color: white;
+  background: #2a2a2a;
+  color: #ffffff;
+  border: 1px solid #333333;
 }
 
 .host-profile-page .cancel-btn:hover {
-  background: #5a6268;
+  background: #333333;
 }
 
 .profile-info {
@@ -121,7 +131,7 @@
   display: flex;
   justify-content: space-between;
   padding: 0.6rem 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #333333;
   gap: 20px;
   align-items: flex-start;
 }
@@ -132,7 +142,7 @@
 
 .info-row strong {
   font-weight: 600;
-  color: #555;
+  color: #b0b0b0;
   flex-shrink: 0;
   min-width: 140px;
   width: auto;
@@ -141,7 +151,7 @@
 
 .info-row span {
   flex: 1;
-  color: #333;
+  color: #ffffff;
   text-align: right;
   font-size: 0.95rem;
   word-wrap: break-word;
@@ -160,7 +170,7 @@
   display: block;
   margin-bottom: 0.4rem;
   font-weight: 600;
-  color: #555;
+  color: #b0b0b0;
   font-size: 0.95rem;
 }
 
@@ -169,24 +179,27 @@
 .form-group textarea {
   width: 100%;
   padding: 0.65rem;
-  border: 1px solid #ddd;
+  border: 1px solid #333333;
   border-radius: 4px;
   font-size: 0.95rem;
   transition: border-color 0.3s;
   box-sizing: border-box;
+  background: #2a2a2a;
+  color: #ffffff;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: #FFD700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
 }
 
 .form-group input:disabled {
-  background-color: #f5f5f5;
+  background-color: #1a1a1a;
   cursor: not-allowed;
+  color: #808080;
 }
 
 .form-row {
@@ -204,7 +217,7 @@
   align-items: center;
   height: 300px;
   font-size: 1.2rem;
-  color: #6c757d;
+  color: #b0b0b0;
 }
 
 @media (max-width: 768px) {
