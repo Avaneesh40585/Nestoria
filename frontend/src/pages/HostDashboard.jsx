@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { hostAPI, hotelAPI, roomAPI, bookingAPI } from '../services/api';
+import { uploadHotelImage } from '../services/uploadAPI';
 import { FaHotel, FaBed, FaCalendarCheck, FaRupeeSign, FaPlus, FaEdit, FaTrash, FaSave, FaTimes } from 'react-icons/fa';
 
 // Helper function to format date as DD/MM/YYYY
@@ -92,7 +93,23 @@ const HostDashboard = () => {
   const handleAddHotel = async (e) => {
     e.preventDefault();
     try {
-      const response = await hotelAPI.create(hotelForm);
+      let imageUrl = '';
+      
+      // Upload image to Supabase if file is selected
+      if (imageFile) {
+        console.log('📤 Uploading hotel image to Supabase...');
+        const uploadResult = await uploadHotelImage(imageFile);
+        imageUrl = uploadResult.url;
+        console.log('✅ Image uploaded:', imageUrl);
+      }
+      
+      // Create hotel with Supabase image URL
+      const hotelData = {
+        ...hotelForm,
+        hotel_img: imageUrl
+      };
+      
+      const response = await hotelAPI.create(hotelData);
       const newHotelId = response.data.hotel.hotelid;
       
       const viewRooms = window.confirm('Hotel added successfully! Would you like to manage rooms for this hotel now?');
@@ -118,7 +135,7 @@ const HostDashboard = () => {
       }
     } catch (error) {
       console.error('Error adding hotel:', error);
-      alert('Failed to add hotel');
+      alert('Failed to add hotel: ' + (error.response?.data?.error || error.message));
     }
   };
 
@@ -155,8 +172,18 @@ const HostDashboard = () => {
 
   const handleSaveEdit = async (hotelId) => {
     try {
-      console.log('Updating hotel with data:', editForm);
-      await hotelAPI.update(hotelId, editForm);
+      let updatedData = { ...editForm };
+      
+      // Upload new image to Supabase if file is selected
+      if (editImageFile) {
+        console.log('📤 Uploading updated hotel image to Supabase...');
+        const uploadResult = await uploadHotelImage(editImageFile);
+        updatedData.hotel_img = uploadResult.url;
+        console.log('✅ Image uploaded:', uploadResult.url);
+      }
+      
+      console.log('Updating hotel with data:', updatedData);
+      await hotelAPI.update(hotelId, updatedData);
       alert('Hotel updated successfully!');
       setEditingHotelId(null);
       setEditImageFile(null);
@@ -215,7 +242,6 @@ const HostDashboard = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
-        setHotelForm({...hotelForm, hotel_img: reader.result});
       };
       reader.readAsDataURL(file);
     }
@@ -224,7 +250,6 @@ const HostDashboard = () => {
   const handleRemoveImage = () => {
     setImageFile(null);
     setImagePreview('');
-    setHotelForm({...hotelForm, hotel_img: ''});
   };
 
   const handleEditImageFileChange = (e) => {
@@ -248,7 +273,6 @@ const HostDashboard = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setEditImagePreview(reader.result);
-        setEditForm({...editForm, hotel_img: reader.result});
       };
       reader.readAsDataURL(file);
     }
@@ -257,7 +281,6 @@ const HostDashboard = () => {
   const handleRemoveEditImage = () => {
     setEditImageFile(null);
     setEditImagePreview('');
-    setEditForm({...editForm, hotel_img: ''});
   };
 
   // Validation functions for Add Hotel form
@@ -863,10 +886,10 @@ const HostDashboard = () => {
                       </div>
                     ) : (
                       <>
-                        {hotel.hotelimg && (
+                        {hotel.hotel_img && (
                           <div style={{ marginBottom: '15px' }}>
                             <img 
-                              src={hotel.hotelimg} 
+                              src={hotel.hotel_img} 
                               alt={hotel.hotel_name}
                               style={{ 
                                 width: '100%', 

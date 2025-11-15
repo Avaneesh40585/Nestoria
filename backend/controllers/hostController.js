@@ -28,19 +28,60 @@ exports.updateProfile = async (req, res) => {
     const hostId = req.user.id;
     const { full_name, phone_number, gender, age, address } = req.body;
 
-    const result = await pool.query(
-      `UPDATE Host SET 
-       Full_Name = $1, Phone_Number = $2, Gender = $3, Age = $4, Address = $5
-       WHERE HostID = $6 RETURNING HostID, Full_Name, Email, Phone_Number, Gender, Age, Address`,
-      [full_name, phone_number, gender, age, address, hostId]
-    );
+    console.log('📝 Updating host profile:', hostId);
+    console.log('Data received:', { full_name, phone_number, gender, age, address });
+
+    // Build dynamic update query based on provided fields
+    const updates = [];
+    const values = [];
+    let paramCounter = 1;
+
+    if (full_name !== undefined) {
+      updates.push(`Full_Name = $${paramCounter}`);
+      values.push(full_name);
+      paramCounter++;
+    }
+    if (phone_number !== undefined) {
+      updates.push(`Phone_Number = $${paramCounter}`);
+      values.push(phone_number);
+      paramCounter++;
+    }
+    if (gender !== undefined) {
+      updates.push(`Gender = $${paramCounter}`);
+      values.push(gender);
+      paramCounter++;
+    }
+    if (age !== undefined) {
+      updates.push(`Age = $${paramCounter}`);
+      values.push(age);
+      paramCounter++;
+    }
+    if (address !== undefined) {
+      updates.push(`Address = $${paramCounter}`);
+      values.push(address);
+      paramCounter++;
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    values.push(hostId);
+    const query = `UPDATE Host SET ${updates.join(', ')} WHERE HostID = $${paramCounter} RETURNING HostID, Full_Name, Email, Phone_Number, Gender, Age, Address`;
+
+    console.log('Executing query:', query);
+    console.log('With values:', values);
+
+    const result = await pool.query(query, values);
+
+    console.log('✅ Profile updated successfully');
 
     res.json({
       message: 'Profile updated successfully',
       host: result.rows[0]
     });
   } catch (error) {
-    console.error('Error updating profile:', error);
+    console.error('❌ Error updating profile:', error);
     res.status(500).json({ error: 'Failed to update profile', details: error.message });
   }
 };

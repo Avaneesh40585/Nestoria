@@ -26,6 +26,8 @@ export const authAPI = {
   registerHost: (data) => api.post('/auth/register/host', data),
   loginCustomer: (data) => api.post('/auth/login/customer', data),
   loginHost: (data) => api.post('/auth/login/host', data),
+  googleAuthCustomer: (data) => api.post('/auth/google/customer', data),
+  googleAuthHost: (data) => api.post('/auth/google/host', data),
 };
 
 // Hotel API

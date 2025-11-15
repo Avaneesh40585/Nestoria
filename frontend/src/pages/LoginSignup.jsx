@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
+import { signInWithGoogle } from '../config/firebase';
 import { FaUser, FaEnvelope, FaLock, FaPhoneAlt, FaMapMarkerAlt, FaGoogle } from 'react-icons/fa';
 
 const LoginSignup = () => {
@@ -224,8 +225,70 @@ const LoginSignup = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    alert('Google OAuth integration coming soon!');
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      console.log('🔄 Starting Google sign-in...');
+      
+      // Sign in with Google using Firebase
+      const googleResult = await signInWithGoogle();
+      
+      if (!googleResult.success) {
+        console.error('❌ Google sign-in failed:', googleResult.error);
+        setError(googleResult.error || 'Google sign-in failed');
+        return;
+      }
+
+      console.log('✅ Google sign-in successful, user:', googleResult.user.email);
+      console.log('🔐 Sending token to backend...');
+
+      // Send Firebase token to backend for verification and user creation
+      let response;
+      try {
+        if (userType === 'customer') {
+          response = await authAPI.googleAuthCustomer({ firebaseToken: googleResult.token });
+        } else {
+          response = await authAPI.googleAuthHost({ firebaseToken: googleResult.token });
+        }
+      } catch (backendError) {
+        console.error('❌ Backend authentication failed:', backendError);
+        const errorMsg = backendError.response?.data?.error || backendError.message;
+        const errorDetails = backendError.response?.data?.details;
+        setError(`Authentication failed: ${errorMsg}${errorDetails ? ' - ' + errorDetails : ''}`);
+        return;
+      }
+
+      const responseData = response.data.data || response.data;
+      login(responseData.token, responseData.user);
+      
+      console.log('✅ Google authentication successful!');
+      
+      // Check if user needs to complete profile (new user from Google)
+      const needsProfileCompletion = !responseData.user.phone_number || 
+                                     responseData.user.phone_number === '' ||
+                                     responseData.user.phone_number === null;
+      
+      if (needsProfileCompletion) {
+        console.log('📝 Redirecting to profile completion...');
+        // Redirect to profile completion
+        navigate('/complete-profile', { state: { userType } });
+      } else {
+        console.log('✅ Profile complete, redirecting to dashboard...');
+        // Profile already complete, redirect to dashboard/home
+        if (userType === 'host') {
+          navigate('/host/dashboard');
+        } else {
+          navigate('/');
+        }
+      }
+    } catch (err) {
+      console.error('❌ Unexpected Google auth error:', err);
+      setError(err.response?.data?.error || err.message || 'Google authentication failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -402,9 +465,9 @@ const LoginSignup = () => {
             <span>OR</span>
           </div>
 
-          <button className="google-btn" onClick={handleGoogleLogin}>
+          <button className="google-btn" onClick={handleGoogleLogin} disabled={loading}>
             <FaGoogle className="google-icon" />
-            Continue with Google
+            {loading ? 'Signing in...' : 'Continue with Google'}
           </button>
 
           <p className="switch-auth">

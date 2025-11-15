@@ -8,6 +8,7 @@ import Footer from './components/Footer';
 // Pages
 import Home from './pages/Home';
 import LoginSignup from './pages/LoginSignup';
+import CompleteProfile from './pages/CompleteProfile';
 import HotelsList from './pages/HotelsList';
 import HotelDetails from './pages/HotelDetails';
 import RoomDetails from './pages/RoomDetails';
@@ -32,6 +33,11 @@ function App() {
               {/* Public Routes */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<LoginSignup />} />
+              <Route path="/complete-profile" element={
+                <ProtectedRoute>
+                  <CompleteProfile />
+                </ProtectedRoute>
+              } />
               <Route path="/hotels" element={<HotelsList />} />
               <Route path="/hotel/:id" element={<HotelDetails />} />
               <Route path="/room/:id" element={<RoomDetails />} />
