@@ -16,14 +16,14 @@ exports.searchHotels = async (req, res) => {
 
     // Location filter (case-insensitive)
     if (location) {
-      query += ` AND h.HotelAddress ILIKE $${paramIndex}`;
+      query += ` AND h.Hotel_Address ILIKE $${paramIndex}`;
       params.push(`%${location}%`);
       paramIndex++;
     }
 
     // Rating filter
     if (minRating) {
-      query += ` AND h.OverallRating >= $${paramIndex}`;
+      query += ` AND h.Overall_Rating >= $${paramIndex}`;
       params.push(minRating);
       paramIndex++;
     }
@@ -51,7 +51,7 @@ exports.searchHotels = async (req, res) => {
       paramIndex += 2;
     }
 
-    query += ' ORDER BY h.OverallRating DESC';
+    query += ' ORDER BY h.Overall_Rating DESC';
 
     const result = await pool.query(query, params);
 
@@ -73,39 +73,33 @@ exports.searchHotels = async (req, res) => {
   }
 };
 
-// Get hotel details
+// Get hotel details (optimized to fetch all data in fewer queries)
 exports.getHotelDetails = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const hotelQuery = await pool.query(
-      'SELECT * FROM Hotel WHERE HotelID = $1',
-      [id]
-    );
+    // Fetch hotel, amenities, and rooms in parallel
+    const [hotelQuery, amenitiesQuery, roomsQuery] = await Promise.all([
+      pool.query('SELECT * FROM Hotel WHERE HotelID = $1', [id]),
+      pool.query(
+        `SELECT a.AmenityID, a.Amenity_Name, ha.Is_Available, ha.Additional_Info
+         FROM Amenities a
+         INNER JOIN Hotel_Amenities ha ON a.AmenityID = ha.AmenityID
+         WHERE ha.HotelID = $1`,
+        [id]
+      ),
+      pool.query(
+        'SELECT * FROM Room WHERE HotelID = $1 ORDER BY Cost_Per_Night',
+        [id]
+      )
+    ]);
 
     if (hotelQuery.rows.length === 0) {
       return res.status(404).json({ error: 'Hotel not found' });
     }
 
-    const hotel = hotelQuery.rows[0];
-
-    // Get amenities
-    const amenitiesQuery = await pool.query(
-      `SELECT a.*, har.Availability_hrs
-       FROM Amenities a
-       JOIN Hotel_Amenities_Relation har ON a.AmenityID = har.AmenityID
-       WHERE har.HotelID = $1`,
-      [id]
-    );
-
-    // Get rooms
-    const roomsQuery = await pool.query(
-      'SELECT * FROM Room WHERE HotelID = $1 ORDER BY Cost_per_night',
-      [id]
-    );
-
     res.json({
-      hotel,
+      hotel: hotelQuery.rows[0],
       amenities: amenitiesQuery.rows,
       rooms: roomsQuery.rows
     });
@@ -119,7 +113,7 @@ exports.getHotelDetails = async (req, res) => {
 exports.getAllHotels = async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT * FROM Hotel ORDER BY OverallRating DESC'
+      'SELECT * FROM Hotel ORDER BY Overall_Rating DESC'
     );
     res.json({ hotels: result.rows });
   } catch (error) {
@@ -139,30 +133,35 @@ exports.createHotel = async (req, res) => {
       hotel_desc,
       checkin_time,
       checkout_time,
-      contact_receptionist,
+      receptionist_number,
       hotel_img,
       amenities
     } = req.body;
 
     await client.query('BEGIN');
 
+    // Generate HotelID
+    const hotelCountResult = await client.query('SELECT COUNT(*) as count FROM Hotel');
+    const hotelCount = parseInt(hotelCountResult.rows[0].count) + 1;
+    const hotelId = `AADHTEL${String(hotelCount).padStart(3, '0')}`;
+
     const result = await client.query(
-      `INSERT INTO Hotel (HostID, HotelName, HotelAddress, Hoteldesc, Checkin_time, 
-       Checkout_time, ContactReceptionist, HotelImg, OverallRating)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0.0) RETURNING *`,
-      [hostId, hotel_name, hotel_address, hotel_desc, checkin_time, checkout_time, 
-       contact_receptionist, hotel_img]
+      `INSERT INTO Hotel (HotelID, HostID, Hotel_Name, Hotel_Address, Hotel_Description, Checkin_Time, 
+       Checkout_Time, Receptionist_Number, Hotel_Img, Overall_Rating)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 0.0) RETURNING *`,
+      [hotelId, hostId, hotel_name, hotel_address, hotel_desc, checkin_time, checkout_time, 
+       receptionist_number, hotel_img]
     );
 
-    const hotelId = result.rows[0].hotelid;
+    // const hotelId = result.rows[0].hotelid; // No longer needed since we generate it
 
     // Insert amenities if provided
     if (amenities && amenities.length > 0) {
       console.log('Creating hotel with amenities:', amenities);
       for (const amenityId of amenities) {
         await client.query(
-          'INSERT INTO Hotel_Amenities_Relation (HotelID, AmenityID, Availability_hrs) VALUES ($1, $2, $3)',
-          [hotelId, amenityId, '24/7']
+          'INSERT INTO Hotel_Amenities (HotelID, AmenityID, Is_Available, Additional_Info) VALUES ($1, $2, $3, $4)',
+          [hotelId, amenityId, true, '24/7']
         );
       }
     }
@@ -194,7 +193,7 @@ exports.updateHotel = async (req, res) => {
       hotel_desc,
       checkin_time,
       checkout_time,
-      contact_receptionist,
+      receptionist_number,
       hotel_img,
       amenities
     } = req.body;
@@ -213,25 +212,25 @@ exports.updateHotel = async (req, res) => {
 
     const result = await client.query(
       `UPDATE Hotel SET 
-       HotelName = $1, HotelAddress = $2, Hoteldesc = $3, Checkin_time = $4,
-       Checkout_time = $5, ContactReceptionist = $6, HotelImg = $7
+       Hotel_Name = $1, Hotel_Address = $2, Hotel_Description = $3, Checkin_Time = $4,
+       Checkout_Time = $5, Receptionist_Number = $6, Hotel_Img = $7
        WHERE HotelID = $8 RETURNING *`,
       [hotel_name, hotel_address, hotel_desc, checkin_time, checkout_time,
-       contact_receptionist, hotel_img, id]
+       receptionist_number, hotel_img, id]
     );
 
     // Update amenities if provided
     if (amenities !== undefined) {
       console.log('Updating hotel amenities:', amenities);
       // Delete existing amenities
-      await client.query('DELETE FROM Hotel_Amenities_Relation WHERE HotelID = $1', [id]);
+      await client.query('DELETE FROM Hotel_Amenities WHERE HotelID = $1', [id]);
       
       // Insert new amenities
       if (amenities.length > 0) {
         for (const amenityId of amenities) {
           await client.query(
-            'INSERT INTO Hotel_Amenities_Relation (HotelID, AmenityID, Availability_hrs) VALUES ($1, $2, $3)',
-            [id, amenityId, '24/7']
+            'INSERT INTO Hotel_Amenities (HotelID, AmenityID, Is_Available, Additional_Info) VALUES ($1, $2, $3, $4)',
+            [id, amenityId, true, '24/7']
           );
         }
       }
@@ -252,23 +251,21 @@ exports.updateHotel = async (req, res) => {
   }
 };
 
-// Delete hotel
+// Delete hotel (optimized ownership check and delete)
 exports.deleteHotel = async (req, res) => {
   try {
     const { id } = req.params;
     const hostId = req.user.id;
 
-    // Verify ownership
-    const ownershipCheck = await pool.query(
-      'SELECT * FROM Hotel WHERE HotelID = $1 AND HostID = $2',
+    // Verify ownership and delete in single query
+    const result = await pool.query(
+      'DELETE FROM Hotel WHERE HotelID = $1 AND HostID = $2 RETURNING HotelID',
       [id, hostId]
     );
 
-    if (ownershipCheck.rows.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(403).json({ error: 'Not authorized to delete this hotel' });
     }
-
-    await pool.query('DELETE FROM Hotel WHERE HotelID = $1', [id]);
 
     res.json({ message: 'Hotel deleted successfully' });
   } catch (error) {

@@ -7,7 +7,7 @@ exports.getProfile = async (req, res) => {
     const customerId = req.user.id;
 
     const result = await pool.query(
-      'SELECT CustomerID, Full_name, Email, PhoneNumber, Gender, Age, Address, Identity_No, TotalBookings FROM Customer WHERE CustomerID = $1',
+      'SELECT CustomerID, Full_Name, Email, Phone_Number, Gender, Age, Address, Total_Bookings FROM Customer WHERE CustomerID = $1',
       [customerId]
     );
 
@@ -30,8 +30,8 @@ exports.updateProfile = async (req, res) => {
 
     const result = await pool.query(
       `UPDATE Customer SET 
-       Full_name = $1, PhoneNumber = $2, Gender = $3, Age = $4, Address = $5
-       WHERE CustomerID = $6 RETURNING CustomerID, Full_name, Email, PhoneNumber, Gender, Age, Address, Identity_No, TotalBookings`,
+       Full_Name = $1, Phone_Number = $2, Gender = $3, Age = $4, Address = $5
+       WHERE CustomerID = $6 RETURNING CustomerID, Full_Name, Email, Phone_Number, Gender, Age, Address, Total_Bookings`,
       [full_name, phone_number, gender, age, address, customerId]
     );
 

@@ -45,7 +45,7 @@ const HotelsList = () => {
     if (initialLocationSet && hotels.length > 0 && searchedLocation) {
       // Apply the location filter immediately based on searchedLocation
       const filtered = hotels.filter(hotel => 
-        hotel.hoteladdress?.toLowerCase().includes(searchedLocation.toLowerCase())
+        hotel.hotel_address?.toLowerCase().includes(searchedLocation.toLowerCase())
       );
       setFilteredHotels(filtered);
     }
@@ -69,7 +69,7 @@ const HotelsList = () => {
       if (hotelsData.length > 0) {
         const areas = hotelsData
           .map(hotel => {
-            const address = hotel.hoteladdress || '';
+            const address = hotel.hotel_address || '';
             // Extract the first part before comma (usually the area)
             const areaPart = address.split(',')[0].trim();
             return areaPart;
@@ -105,13 +105,13 @@ const HotelsList = () => {
 
       if (filters.location) {
         filtered = filtered.filter(hotel => 
-          hotel.hoteladdress?.toLowerCase().includes(filters.location.toLowerCase())
+          hotel.hotel_address?.toLowerCase().includes(filters.location.toLowerCase())
         );
       }
 
       if (filters.area) {
         filtered = filtered.filter(hotel => 
-          hotel.hoteladdress?.toLowerCase().includes(filters.area.toLowerCase())
+          hotel.hotel_address?.toLowerCase().includes(filters.area.toLowerCase())
         );
       }
 
@@ -129,7 +129,7 @@ const HotelsList = () => {
 
       if (filters.minRating) {
         filtered = filtered.filter(hotel => 
-          parseFloat(hotel.overallrating) >= parseFloat(filters.minRating)
+          parseFloat(hotel.overall_rating) >= parseFloat(filters.minRating)
         );
       }
 

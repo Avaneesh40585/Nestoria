@@ -14,52 +14,50 @@ exports.createBooking = async (req, res) => {
       final_amount
     } = req.body;
 
-    // Check room availability
+    // Check room availability (optimized query)
     const availabilityCheck = await pool.query(
-      `SELECT COUNT(*) as booking_count
-       FROM Booking
-       WHERE RoomID = $1
-       AND booking_status = TRUE
-       AND (
-         (checkin_date <= $2 AND checkout_date > $2)
-         OR (checkin_date < $3 AND checkout_date >= $3)
-         OR (checkin_date >= $2 AND checkout_date <= $3)
-       )`,
+      `SELECT EXISTS(
+         SELECT 1
+         FROM Booking
+         WHERE RoomID = $1 AND HotelID = (SELECT HotelID FROM Room WHERE RoomID = $1)
+         AND Booking_Status = TRUE
+         AND (
+           (Checkin_Date <= $2 AND Checkout_Date > $2)
+           OR (Checkin_Date < $3 AND Checkout_Date >= $3)
+           OR (Checkin_Date >= $2 AND Checkout_Date <= $3)
+         )
+       ) as is_booked`,
       [room_id, checkin_date, checkout_date]
     );
 
-    if (availabilityCheck.rows[0].booking_count !== '0') {
+    if (availabilityCheck.rows[0].is_booked) {
       return res.status(400).json({ error: 'Room not available for selected dates' });
     }
 
-    // Get a receptionist for the hotel
-    const receptionistQuery = await pool.query(
-      `SELECT e.EmployeeID FROM Employee e
-       JOIN Room r ON e.HotelID = r.HotelID
-       WHERE r.RoomID = $1 AND e.Role = 'Receptionist' AND e.Status = 'active'
-       LIMIT 1`,
+    // Get hotel ID for the room
+    const hotelQuery = await pool.query(
+      'SELECT HotelID FROM Room WHERE RoomID = $1',
       [room_id]
     );
-
-    const receptionistId = receptionistQuery.rows.length > 0 
-      ? receptionistQuery.rows[0].employeeid 
-      : null;
-
-    // Generate transaction ID
-    const transactionId = `TXN${Date.now()}${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+    
+    if (hotelQuery.rows.length === 0) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    
+    const hotelId = hotelQuery.rows[0].hotelid;
 
     // Create booking
     const result = await pool.query(
-      `INSERT INTO Booking (CustomerID, RoomID, ReceptionistID, TransactionID, 
-       checkin_date, checkout_date, base_amount, tax_amount, final_amount, booking_status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, TRUE) RETURNING *`,
-      [customerId, room_id, receptionistId, transactionId, checkin_date, checkout_date,
-       base_amount, tax_amount, final_amount]
+      `INSERT INTO Booking (CustomerID, HotelID, RoomID, 
+       Checkin_Date, Checkout_Date, Base_Amount, Tax_Amount, Booking_Status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE) RETURNING *`,
+      [customerId, hotelId, room_id, checkin_date, checkout_date,
+       base_amount, tax_amount]
     );
 
     // Update customer total bookings
     await pool.query(
-      'UPDATE Customer SET TotalBookings = TotalBookings + 1 WHERE CustomerID = $1',
+      'UPDATE Customer SET Total_Bookings = Total_Bookings + 1 WHERE CustomerID = $1',
       [customerId]
     );
 
@@ -73,18 +71,23 @@ exports.createBooking = async (req, res) => {
   }
 };
 
-// Get customer bookings
+// Get customer bookings (optimized column selection)
 exports.getCustomerBookings = async (req, res) => {
   try {
     const customerId = req.user.id;
 
     const result = await pool.query(
-      `SELECT b.*, r.RoomNumber, r.Room_type, h.HotelName, h.HotelAddress, h.HotelImg
+      `SELECT 
+         b.BookingID, b.CustomerID, b.RoomID, b.HotelID,
+         b.Checkin_Date, b.Checkout_Date, b.Booking_Date,
+         b.Base_Amount, b.Tax_Amount, b.Booking_Status,
+         r.RoomID as room_number, r.Room_Type, 
+         h.HotelID, h.Hotel_Name, h.Hotel_Address, h.Hotel_Img
        FROM Booking b
-       JOIN Room r ON b.RoomID = r.RoomID
-       JOIN Hotel h ON r.HotelID = h.HotelID
+       INNER JOIN Room r ON b.RoomID = r.RoomID AND b.HotelID = r.HotelID
+       INNER JOIN Hotel h ON r.HotelID = h.HotelID
        WHERE b.CustomerID = $1
-       ORDER BY b.booking_date DESC`,
+       ORDER BY b.Booking_Date DESC`,
       [customerId]
     );
 
@@ -95,19 +98,25 @@ exports.getCustomerBookings = async (req, res) => {
   }
 };
 
-// Get booking details
+// Get booking details (optimized with explicit columns)
 exports.getBookingDetails = async (req, res) => {
   try {
     const { id } = req.params;
     const customerId = req.user.id;
 
     const result = await pool.query(
-      `SELECT b.*, r.*, h.HotelName, h.HotelAddress, h.Checkin_time, h.Checkout_time,
-       c.Full_name as customer_name, c.Email as customer_email, c.PhoneNumber as customer_phone
+      `SELECT 
+         b.BookingID, b.CustomerID, b.RoomID, b.HotelID,
+         b.Checkin_Date, b.Checkout_Date, b.Booking_Date,
+         b.Base_Amount, b.Tax_Amount, b.Booking_Status,
+         r.RoomID as room_number, r.Room_Type, r.Room_Description, r.Cost_Per_Night,
+         r.Position_View, r.Room_Status, r.Overall_Rating,
+         h.HotelID, h.Hotel_Name, h.Hotel_Address, h.Checkin_Time, h.Checkout_Time,
+         c.Full_Name as customer_name, c.Email as customer_email, c.Phone_Number as customer_phone
        FROM Booking b
-       JOIN Room r ON b.RoomID = r.RoomID
-       JOIN Hotel h ON r.HotelID = h.HotelID
-       JOIN Customer c ON b.CustomerID = c.CustomerID
+       INNER JOIN Room r ON b.RoomID = r.RoomID AND b.HotelID = r.HotelID
+       INNER JOIN Hotel h ON r.HotelID = h.HotelID
+       INNER JOIN Customer c ON b.CustomerID = c.CustomerID
        WHERE b.BookingID = $1 AND b.CustomerID = $2`,
       [id, customerId]
     );
@@ -123,20 +132,25 @@ exports.getBookingDetails = async (req, res) => {
   }
 };
 
-// Get host bookings (all bookings for host's hotels)
+// Get host bookings (optimized column selection)
 exports.getHostBookings = async (req, res) => {
   try {
     const hostId = req.user.id;
 
     const result = await pool.query(
-      `SELECT b.*, r.RoomNumber, r.Room_type, h.HotelName, 
-       c.Full_name as customer_name, c.Email as customer_email, c.PhoneNumber as customer_phone
+      `SELECT 
+         b.BookingID, b.CustomerID, b.RoomID, b.HotelID,
+         b.Checkin_Date, b.Checkout_Date, b.Booking_Date,
+         b.Base_Amount, b.Tax_Amount, b.Booking_Status,
+         r.RoomID as room_number, r.Room_Type,
+         h.HotelID, h.Hotel_Name,
+         c.Full_Name as customer_name, c.Email as customer_email, c.Phone_Number as customer_phone
        FROM Booking b
-       JOIN Room r ON b.RoomID = r.RoomID
-       JOIN Hotel h ON r.HotelID = h.HotelID
-       JOIN Customer c ON b.CustomerID = c.CustomerID
+       INNER JOIN Room r ON b.RoomID = r.RoomID AND b.HotelID = r.HotelID
+       INNER JOIN Hotel h ON r.HotelID = h.HotelID
+       INNER JOIN Customer c ON b.CustomerID = c.CustomerID
        WHERE h.HostID = $1
-       ORDER BY b.booking_date DESC`,
+       ORDER BY b.Booking_Date DESC`,
       [hostId]
     );
 
@@ -147,30 +161,25 @@ exports.getHostBookings = async (req, res) => {
   }
 };
 
-// Cancel booking
+// Cancel booking (optimized ownership check)
 exports.cancelBooking = async (req, res) => {
   try {
     const { id } = req.params;
     const customerId = req.user.id;
 
-    // Verify ownership
-    const ownershipCheck = await pool.query(
-      'SELECT * FROM Booking WHERE BookingID = $1 AND CustomerID = $2',
+    // Verify ownership and update in single query
+    const result = await pool.query(
+      'UPDATE Booking SET Booking_Status = FALSE WHERE BookingID = $1 AND CustomerID = $2 RETURNING BookingID',
       [id, customerId]
     );
 
-    if (ownershipCheck.rows.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(403).json({ error: 'Not authorized to cancel this booking' });
     }
 
-    await pool.query(
-      'UPDATE Booking SET booking_status = FALSE WHERE BookingID = $1',
-      [id]
-    );
-
     // Update customer total bookings
     await pool.query(
-      'UPDATE Customer SET TotalBookings = TotalBookings - 1 WHERE CustomerID = $1',
+      'UPDATE Customer SET Total_Bookings = Total_Bookings - 1 WHERE CustomerID = $1',
       [customerId]
     );
 

@@ -42,7 +42,7 @@ const HostDashboard = () => {
     hotel_desc: '',
     checkin_time: '14:00',
     checkout_time: '11:00',
-    contact_receptionist: '',
+    receptionist_number: '',
     hotel_img: '',
     amenities: []
   });
@@ -104,7 +104,7 @@ const HostDashboard = () => {
         hotel_desc: '',
         checkin_time: '14:00',
         checkout_time: '11:00',
-        contact_receptionist: '',
+        receptionist_number: '',
         hotel_img: '',
         amenities: []
       });
@@ -143,7 +143,7 @@ const HostDashboard = () => {
       hotel_desc: hotel.hoteldesc,
       checkin_time: hotel.checkin_time,
       checkout_time: hotel.checkout_time,
-      contact_receptionist: hotel.contactreceptionist,
+      receptionist_number: hotel.receptionist_number,
       hotel_img: hotel.hotelimg,
       amenities: hotel.amenities || []
     });

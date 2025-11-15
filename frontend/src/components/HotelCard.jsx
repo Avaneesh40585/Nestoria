@@ -40,27 +40,27 @@ const HotelCard = ({ hotel, checkinDate, checkoutDate }) => {
     <div className="hotel-card" onClick={handleClick}>
       <div className="hotel-image">
         <img 
-          src={imageError ? 'https://via.placeholder.com/400x250?text=Hotel+Image' : (hotel.hotelimg || 'https://via.placeholder.com/400x250?text=Hotel+Image')} 
-          alt={hotel.hotelname || 'Hotel'} 
+          src={imageError ? 'https://via.placeholder.com/400x250?text=Hotel+Image' : (hotel.hotel_img || 'https://via.placeholder.com/400x250?text=Hotel+Image')} 
+          alt={hotel.hotel_name || 'Hotel'} 
           onError={handleImageError}
         />
         <div className="hotel-rating">
           <FaStar className="star-icon" />
-          <span>{formatRating(hotel.overallrating)}</span>
+          <span>{formatRating(hotel.overall_rating)}</span>
         </div>
       </div>
       
       <div className="hotel-details">
-        <h3 className="hotel-name">{hotel.hotelname || 'Hotel Name'}</h3>
+        <h3 className="hotel-name">{hotel.hotel_name || 'Hotel Name'}</h3>
         <p className="hotel-location">
-          <span>{hotel.hoteladdress || 'Location not available'}</span>
+          <span>{hotel.hotel_address || 'Location not available'}</span>
         </p>
         
-        {hotel.hoteldesc && hotel.hoteldesc.trim() && (
+        {hotel.hotel_description && hotel.hotel_description.trim() && (
           <p className="hotel-description">
-            {hotel.hoteldesc.length > 120 
-              ? `${hotel.hoteldesc.substring(0, 120).trim()}...` 
-              : hotel.hoteldesc}
+            {hotel.hotel_description.length > 120 
+              ? `${hotel.hotel_description.substring(0, 120).trim()}...` 
+              : hotel.hotel_description}
           </p>
         )}
         

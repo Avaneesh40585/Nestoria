@@ -9,10 +9,9 @@ const addReview = async (req, res) => {
   try {
     // Verify the booking belongs to the customer
     const bookingCheck = await pool.query(
-      `SELECT b.bookingid, b.roomid, r.hotelid, b.checkin_date, b.checkout_date, b.booking_status
-       FROM booking b
-       JOIN room r ON b.roomid = r.roomid
-       WHERE b.bookingid = $1 AND b.customerid = $2`,
+      `SELECT BookingID, HotelID, RoomID, Checkin_Date, Checkout_Date, Booking_Status
+       FROM Booking
+       WHERE BookingID = $1 AND CustomerID = $2`,
       [booking_id, customerId]
     );
 
@@ -40,84 +39,43 @@ const addReview = async (req, res) => {
       return res.status(400).json({ error: 'You can only review after check-in or if booking is completed' });
     }
 
-    // Get customer name
-    const customerName = await pool.query(
-      'SELECT full_name FROM customer WHERE customerid = $1',
-      [customerId]
-    );
-
     // Update hotel review if provided
     if (hotel_review || hotel_rating) {
-      // Get existing reviews
-      const hotelResult = await pool.query(
-        'SELECT reviews FROM hotel WHERE hotelid = $1',
-        [hotelId]
+      // Check if review already exists
+      const existingReview = await pool.query(
+        'SELECT * FROM Customer_Hotel_Review WHERE CustomerID = $1 AND HotelID = $2',
+        [customerId, hotelId]
       );
-      
-      const existingReviews = hotelResult.rows[0]?.reviews || '';
-      const reviewsArray = existingReviews.split('\n').filter(r => r.trim());
-      
-      // Create new review entry
-      const newReviewEntry = JSON.stringify({
-        customer: customerName.rows[0].full_name,
-        rating: hotel_rating,
-        review: hotel_review,
-        date: new Date().toISOString(),
-        bookingId: booking_id
-      });
-      
-      // Check if this customer already reviewed this hotel for this booking
-      let reviewUpdated = false;
-      const updatedReviewsArray = reviewsArray.map(reviewStr => {
-        try {
-          const review = JSON.parse(reviewStr);
-          // Replace review if same customer and same booking
-          if (review.customer === customerName.rows[0].full_name && review.bookingId === booking_id) {
-            reviewUpdated = true;
-            return newReviewEntry;
-          }
-          return reviewStr;
-        } catch (e) {
-          return reviewStr; // Keep old format reviews as-is
-        }
-      });
-      
-      // If no existing review was updated, add as new review
-      if (!reviewUpdated) {
-        updatedReviewsArray.push(newReviewEntry);
+
+      if (existingReview.rows.length > 0) {
+        // Update existing review
+        await pool.query(
+          `UPDATE Customer_Hotel_Review 
+           SET Hotel_Review = $1, Hotel_Rating = $2, Review_Date = CURRENT_TIMESTAMP
+           WHERE CustomerID = $3 AND HotelID = $4`,
+          [hotel_review, hotel_rating, customerId, hotelId]
+        );
+      } else {
+        // Insert new review
+        await pool.query(
+          `INSERT INTO Customer_Hotel_Review (CustomerID, HotelID, Hotel_Review, Hotel_Rating, Hotel_Score)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [customerId, hotelId, hotel_review, hotel_rating, hotel_rating ? Math.round(hotel_rating * 2) : null]
+        );
       }
-      
-      const updatedReviews = updatedReviewsArray.join('\n');
-      
-      await pool.query(
-        'UPDATE hotel SET reviews = $1 WHERE hotelid = $2',
-        [updatedReviews.trim(), hotelId]
-      );
 
       // Calculate and update average hotel rating
       if (hotel_rating) {
-        const allReviews = updatedReviewsArray;
-        let totalRating = 0;
-        let ratingCount = 0;
+        const avgResult = await pool.query(
+          'SELECT AVG(Hotel_Rating) as avg_rating FROM Customer_Hotel_Review WHERE HotelID = $1 AND Hotel_Rating IS NOT NULL',
+          [hotelId]
+        );
         
-        allReviews.forEach(reviewStr => {
-          try {
-            const review = JSON.parse(reviewStr);
-            if (review.rating) {
-              totalRating += parseFloat(review.rating);
-              ratingCount++;
-            }
-          } catch (e) {
-            // Skip invalid JSON
-          }
-        });
-        
-        const avgRating = ratingCount > 0 ? (totalRating / ratingCount).toFixed(1) : null;
-        
+        const avgRating = avgResult.rows[0]?.avg_rating;
         if (avgRating) {
           await pool.query(
-            'UPDATE hotel SET overallrating = $1 WHERE hotelid = $2',
-            [avgRating, hotelId]
+            'UPDATE Hotel SET Overall_Rating = $1 WHERE HotelID = $2',
+            [parseFloat(avgRating).toFixed(1), hotelId]
           );
         }
       }
@@ -125,76 +83,41 @@ const addReview = async (req, res) => {
 
     // Update room review if provided
     if (room_review || room_rating) {
-      // Get existing reviews
-      const roomResult = await pool.query(
-        'SELECT room_review FROM room WHERE roomid = $1',
-        [roomId]
+      // Check if review already exists
+      const existingReview = await pool.query(
+        'SELECT * FROM Customer_Room_Review WHERE CustomerID = $1 AND HotelID = $2 AND RoomID = $3',
+        [customerId, hotelId, roomId]
       );
-      
-      const existingReviews = roomResult.rows[0]?.room_review || '';
-      const reviewsArray = existingReviews.split('\n').filter(r => r.trim());
-      
-      // Create new review entry
-      const newReviewEntry = JSON.stringify({
-        customer: customerName.rows[0].full_name,
-        rating: room_rating,
-        review: room_review,
-        date: new Date().toISOString(),
-        bookingId: booking_id
-      });
-      
-      // Check if this customer already reviewed this room for this booking
-      let reviewUpdated = false;
-      const updatedReviewsArray = reviewsArray.map(reviewStr => {
-        try {
-          const review = JSON.parse(reviewStr);
-          // Replace review if same customer and same booking
-          if (review.customer === customerName.rows[0].full_name && review.bookingId === booking_id) {
-            reviewUpdated = true;
-            return newReviewEntry;
-          }
-          return reviewStr;
-        } catch (e) {
-          return reviewStr; // Keep old format reviews as-is
-        }
-      });
-      
-      // If no existing review was updated, add as new review
-      if (!reviewUpdated) {
-        updatedReviewsArray.push(newReviewEntry);
+
+      if (existingReview.rows.length > 0) {
+        // Update existing review
+        await pool.query(
+          `UPDATE Customer_Room_Review 
+           SET Room_Review = $1, Room_Rating = $2, Review_Date = CURRENT_TIMESTAMP
+           WHERE CustomerID = $3 AND HotelID = $4 AND RoomID = $5`,
+          [room_review, room_rating, customerId, hotelId, roomId]
+        );
+      } else {
+        // Insert new review
+        await pool.query(
+          `INSERT INTO Customer_Room_Review (CustomerID, HotelID, RoomID, Room_Review, Room_Rating, Room_Score)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [customerId, hotelId, roomId, room_review, room_rating, room_rating ? Math.round(room_rating * 2) : null]
+        );
       }
-      
-      const updatedReviews = updatedReviewsArray.join('\n');
-      
-      await pool.query(
-        'UPDATE room SET room_review = $1 WHERE roomid = $2',
-        [updatedReviews.trim(), roomId]
-      );
 
       // Calculate and update average room rating
       if (room_rating) {
-        const allReviews = updatedReviewsArray;
-        let totalRating = 0;
-        let ratingCount = 0;
+        const avgResult = await pool.query(
+          'SELECT AVG(Room_Rating) as avg_rating FROM Customer_Room_Review WHERE HotelID = $1 AND RoomID = $2 AND Room_Rating IS NOT NULL',
+          [hotelId, roomId]
+        );
         
-        allReviews.forEach(reviewStr => {
-          try {
-            const review = JSON.parse(reviewStr);
-            if (review.rating) {
-              totalRating += parseFloat(review.rating);
-              ratingCount++;
-            }
-          } catch (e) {
-            // Skip invalid JSON
-          }
-        });
-        
-        const avgRating = ratingCount > 0 ? (totalRating / ratingCount).toFixed(1) : null;
-        
+        const avgRating = avgResult.rows[0]?.avg_rating;
         if (avgRating) {
           await pool.query(
-            'UPDATE room SET room_rating = $1 WHERE roomid = $2',
-            [avgRating, roomId]
+            'UPDATE Room SET Overall_Rating = $1 WHERE HotelID = $2 AND RoomID = $3',
+            [parseFloat(avgRating).toFixed(1), hotelId, roomId]
           );
         }
       }
@@ -218,10 +141,9 @@ const getBookingReview = async (req, res) => {
   try {
     // Verify the booking belongs to the customer
     const bookingCheck = await pool.query(
-      `SELECT b.bookingid, b.roomid, r.hotelid
-       FROM booking b
-       JOIN room r ON b.roomid = r.roomid
-       WHERE b.bookingid = $1 AND b.customerid = $2`,
+      `SELECT BookingID, HotelID, RoomID
+       FROM Booking
+       WHERE BookingID = $1 AND CustomerID = $2`,
       [booking_id, customerId]
     );
 
@@ -230,61 +152,28 @@ const getBookingReview = async (req, res) => {
     }
 
     const booking = bookingCheck.rows[0];
-    const customerName = await pool.query(
-      'SELECT full_name FROM customer WHERE customerid = $1',
-      [customerId]
+
+    // Get hotel review
+    const hotelReviewResult = await pool.query(
+      'SELECT Hotel_Review, Hotel_Rating FROM Customer_Hotel_Review WHERE CustomerID = $1 AND HotelID = $2',
+      [customerId, booking.hotelid]
     );
 
-    // Get hotel reviews
-    const hotelResult = await pool.query(
-      'SELECT reviews FROM hotel WHERE hotelid = $1',
-      [booking.hotelid]
+    // Get room review
+    const roomReviewResult = await pool.query(
+      'SELECT Room_Review, Room_Rating FROM Customer_Room_Review WHERE CustomerID = $1 AND HotelID = $2 AND RoomID = $3',
+      [customerId, booking.hotelid, booking.roomid]
     );
 
-    // Get room reviews
-    const roomResult = await pool.query(
-      'SELECT room_review FROM room WHERE roomid = $1',
-      [booking.roomid]
-    );
+    const hotelReview = hotelReviewResult.rows.length > 0 ? {
+      rating: hotelReviewResult.rows[0].hotel_rating,
+      review: hotelReviewResult.rows[0].hotel_review
+    } : null;
 
-    let hotelReview = null;
-    let roomReview = null;
-
-    // Parse hotel reviews to find this customer's review
-    if (hotelResult.rows[0]?.reviews) {
-      const reviewsArray = hotelResult.rows[0].reviews.split('\n').filter(r => r.trim());
-      reviewsArray.forEach(reviewStr => {
-        try {
-          const review = JSON.parse(reviewStr);
-          if (review.customer === customerName.rows[0].full_name && review.bookingId == booking_id) {
-            hotelReview = {
-              rating: review.rating,
-              review: review.review
-            };
-          }
-        } catch (e) {
-          // Skip invalid JSON
-        }
-      });
-    }
-
-    // Parse room reviews to find this customer's review
-    if (roomResult.rows[0]?.room_review) {
-      const reviewsArray = roomResult.rows[0].room_review.split('\n').filter(r => r.trim());
-      reviewsArray.forEach(reviewStr => {
-        try {
-          const review = JSON.parse(reviewStr);
-          if (review.customer === customerName.rows[0].full_name && review.bookingId == booking_id) {
-            roomReview = {
-              rating: review.rating,
-              review: review.review
-            };
-          }
-        } catch (e) {
-          // Skip invalid JSON
-        }
-      });
-    }
+    const roomReview = roomReviewResult.rows.length > 0 ? {
+      rating: roomReviewResult.rows[0].room_rating,
+      review: roomReviewResult.rows[0].room_review
+    } : null;
 
     res.json({
       data: {

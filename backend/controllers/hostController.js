@@ -7,7 +7,7 @@ exports.getProfile = async (req, res) => {
     const hostId = req.user.id;
 
     const result = await pool.query(
-      'SELECT HostID, Full_name, Email, PhoneNumber, Gender, Age, Address, Identity_No FROM Host WHERE HostID = $1',
+      'SELECT HostID, Full_Name, Email, Phone_Number, Gender, Age, Address FROM Host WHERE HostID = $1',
       [hostId]
     );
 
@@ -30,8 +30,8 @@ exports.updateProfile = async (req, res) => {
 
     const result = await pool.query(
       `UPDATE Host SET 
-       Full_name = $1, PhoneNumber = $2, Gender = $3, Age = $4, Address = $5
-       WHERE HostID = $6 RETURNING HostID, Full_name, Email, PhoneNumber, Gender, Age, Address, Identity_No`,
+       Full_Name = $1, Phone_Number = $2, Gender = $3, Age = $4, Address = $5
+       WHERE HostID = $6 RETURNING HostID, Full_Name, Email, Phone_Number, Gender, Age, Address`,
       [full_name, phone_number, gender, age, address, hostId]
     );
 
@@ -45,48 +45,47 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// Get dashboard statistics
+// Get dashboard statistics (optimized with single query using CTEs)
 exports.getDashboardStats = async (req, res) => {
   try {
     const hostId = req.user.id;
 
-    // Get total hotels
-    const hotelsResult = await pool.query(
-      'SELECT COUNT(*) as total_hotels FROM Hotel WHERE HostID = $1',
+    // Combine all stats in single query using CTEs
+    const result = await pool.query(
+      `WITH hotel_stats AS (
+        SELECT COUNT(*) as total_hotels
+        FROM Hotel 
+        WHERE HostID = $1
+      ),
+      room_stats AS (
+        SELECT COUNT(*) as total_rooms
+        FROM Room r
+        INNER JOIN Hotel h ON r.HotelID = h.HotelID
+        WHERE h.HostID = $1
+      ),
+      booking_stats AS (
+        SELECT 
+          COUNT(*) as total_bookings,
+          COALESCE(SUM(b.Base_Amount + b.Tax_Amount), 0) as total_revenue
+        FROM Booking b
+        INNER JOIN Room r ON b.RoomID = r.RoomID AND b.HotelID = r.HotelID
+        INNER JOIN Hotel h ON r.HotelID = h.HotelID
+        WHERE h.HostID = $1 AND b.Booking_Status = TRUE
+      )
+      SELECT 
+        (SELECT total_hotels FROM hotel_stats) as total_hotels,
+        (SELECT total_rooms FROM room_stats) as total_rooms,
+        (SELECT total_bookings FROM booking_stats) as total_bookings,
+        (SELECT total_revenue FROM booking_stats) as total_revenue`,
       [hostId]
     );
 
-    // Get total rooms
-    const roomsResult = await pool.query(
-      `SELECT COUNT(*) as total_rooms FROM Room r
-       JOIN Hotel h ON r.HotelID = h.HotelID
-       WHERE h.HostID = $1`,
-      [hostId]
-    );
-
-    // Get total bookings
-    const bookingsResult = await pool.query(
-      `SELECT COUNT(*) as total_bookings FROM Booking b
-       JOIN Room r ON b.RoomID = r.RoomID
-       JOIN Hotel h ON r.HotelID = h.HotelID
-       WHERE h.HostID = $1 AND b.booking_status = TRUE`,
-      [hostId]
-    );
-
-    // Get total revenue
-    const revenueResult = await pool.query(
-      `SELECT COALESCE(SUM(b.final_amount), 0) as total_revenue FROM Booking b
-       JOIN Room r ON b.RoomID = r.RoomID
-       JOIN Hotel h ON r.HotelID = h.HotelID
-       WHERE h.HostID = $1 AND b.booking_status = TRUE`,
-      [hostId]
-    );
-
+    const stats = result.rows[0];
     res.json({
-      total_hotels: hotelsResult.rows[0].total_hotels,
-      total_rooms: roomsResult.rows[0].total_rooms,
-      total_bookings: bookingsResult.rows[0].total_bookings,
-      total_revenue: parseFloat(revenueResult.rows[0].total_revenue)
+      total_hotels: parseInt(stats.total_hotels),
+      total_rooms: parseInt(stats.total_rooms),
+      total_bookings: parseInt(stats.total_bookings),
+      total_revenue: parseFloat(stats.total_revenue)
     });
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);

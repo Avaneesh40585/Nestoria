@@ -1,14 +1,15 @@
 const pool = require('../config/database');
 
-// Get room details
+// Get room details (optimized with parallel queries)
 exports.getRoomDetails = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // First get the room to get the HotelID
     const roomQuery = await pool.query(
-      `SELECT r.*, h.HotelName, h.HotelAddress, h.Checkin_time, h.Checkout_time
+      `SELECT r.*, h.Hotel_Name, h.Hotel_Address, h.Checkin_Time, h.Checkout_Time
        FROM Room r
-       JOIN Hotel h ON r.HotelID = h.HotelID
+       INNER JOIN Hotel h ON r.HotelID = h.HotelID
        WHERE r.RoomID = $1`,
       [id]
     );
@@ -17,19 +18,18 @@ exports.getRoomDetails = async (req, res) => {
       return res.status(404).json({ error: 'Room not found' });
     }
 
-    const room = roomQuery.rows[0];
-
-    // Get room amenities
+    // Now get amenities using the HotelID from the room
+    const hotelId = roomQuery.rows[0].hotelid;
     const amenitiesQuery = await pool.query(
-      `SELECT a.*, rar.Working_Status
+      `SELECT a.AmenityID, a.Amenity_Name, ra.Is_Available, ra.Additional_Info
        FROM Amenities a
-       JOIN Room_Amenities_Relation rar ON a.AmenityID = rar.AmenityID
-       WHERE rar.RoomID = $1`,
-      [id]
+       INNER JOIN Room_Amenities ra ON a.AmenityID = ra.AmenityID
+       WHERE ra.HotelID = $1 AND ra.RoomID = $2`,
+      [hotelId, id]
     );
 
     res.json({
-      room,
+      room: roomQuery.rows[0],
       amenities: amenitiesQuery.rows
     });
   } catch (error) {
@@ -38,26 +38,28 @@ exports.getRoomDetails = async (req, res) => {
   }
 };
 
-// Check room availability
+// Check room availability (optimized with EXISTS)
 exports.checkAvailability = async (req, res) => {
   try {
     const { id } = req.params;
     const { checkin, checkout } = req.query;
 
     const result = await pool.query(
-      `SELECT COUNT(*) as booking_count
-       FROM Booking
-       WHERE RoomID = $1
-       AND booking_status = TRUE
-       AND (
-         (checkin_date <= $2 AND checkout_date > $2)
-         OR (checkin_date < $3 AND checkout_date >= $3)
-         OR (checkin_date >= $2 AND checkout_date <= $3)
-       )`,
+      `SELECT EXISTS(
+         SELECT 1
+         FROM Booking
+         WHERE RoomID = $1
+         AND booking_status = TRUE
+         AND (
+           (checkin_date <= $2 AND checkout_date > $2)
+           OR (checkin_date < $3 AND checkout_date >= $3)
+           OR (checkin_date >= $2 AND checkout_date <= $3)
+         )
+       ) as is_booked`,
       [id, checkin, checkout]
     );
 
-    const isAvailable = result.rows[0].booking_count === '0';
+    const isAvailable = !result.rows[0].is_booked;
 
     res.json({ available: isAvailable });
   } catch (error) {
@@ -96,8 +98,8 @@ exports.createRoom = async (req, res) => {
     await client.query('BEGIN');
 
     const result = await client.query(
-      `INSERT INTO Room (HotelID, RoomNumber, Room_type, Room_desc, Cost_per_night, 
-       Position_view, Room_Status, Room_Rating)
+      `INSERT INTO Room (HotelID, RoomID, Room_Type, Room_Description, Cost_Per_Night, 
+       Position_View, Room_Status, Overall_Rating)
        VALUES ($1, $2, $3, $4, $5, $6, $7, 0.0) RETURNING *`,
       [hotel_id, room_number, room_type, room_desc, cost_per_night, position_view, room_status]
     );
@@ -109,8 +111,8 @@ exports.createRoom = async (req, res) => {
       console.log('Creating room with amenities:', amenities);
       for (const amenityId of amenities) {
         await client.query(
-          'INSERT INTO Room_Amenities_Relation (RoomID, AmenityID, Working_Status) VALUES ($1, $2, TRUE)',
-          [roomId, amenityId]
+          'INSERT INTO Room_Amenities (HotelID, RoomID, AmenityID, Is_Available, Additional_Info) VALUES ($1, $2, $3, $4, $5)',
+          [hotel_id, roomId, amenityId, true, 'Available']
         );
       }
     }
@@ -163,24 +165,24 @@ exports.updateRoom = async (req, res) => {
 
     const result = await client.query(
       `UPDATE Room SET 
-       RoomNumber = $1, Room_type = $2, Room_desc = $3, Cost_per_night = $4,
-       Position_view = $5, Room_Status = $6
-       WHERE RoomID = $7 RETURNING *`,
-      [room_number, room_type, room_desc, cost_per_night, position_view, room_status, id]
+       RoomID = $1, Room_Type = $2, Room_Description = $3, Cost_Per_Night = $4,
+       Position_View = $5, Room_Status = $6
+       WHERE HotelID = $7 AND RoomID = $8 RETURNING *`,
+      [room_number, room_type, room_desc, cost_per_night, position_view, room_status, ownershipCheck.rows[0].hotelid, id]
     );
 
     // Update amenities if provided
     if (amenities !== undefined) {
       console.log('Updating room amenities:', amenities);
       // Delete existing amenities
-      await client.query('DELETE FROM Room_Amenities_Relation WHERE RoomID = $1', [id]);
+      await client.query('DELETE FROM Room_Amenities WHERE HotelID = $1 AND RoomID = $2', [ownershipCheck.rows[0].hotelid, id]);
       
       // Insert new amenities
       if (amenities.length > 0) {
         for (const amenityId of amenities) {
           await client.query(
-            'INSERT INTO Room_Amenities_Relation (RoomID, AmenityID, Working_Status) VALUES ($1, $2, TRUE)',
-            [id, amenityId]
+            'INSERT INTO Room_Amenities (HotelID, RoomID, AmenityID, Is_Available, Additional_Info) VALUES ($1, $2, $3, $4, $5)',
+            [ownershipCheck.rows[0].hotelid, id, amenityId, true, 'Available']
           );
         }
       }
@@ -201,25 +203,26 @@ exports.updateRoom = async (req, res) => {
   }
 };
 
-// Delete room
+// Delete room (optimized ownership check and delete)
 exports.deleteRoom = async (req, res) => {
   try {
     const { id } = req.params;
     const hostId = req.user.id;
 
-    // Verify ownership through hotel
-    const ownershipCheck = await pool.query(
-      `SELECT r.* FROM Room r
-       JOIN Hotel h ON r.HotelID = h.HotelID
-       WHERE r.RoomID = $1 AND h.HostID = $2`,
+    // Verify ownership through hotel and delete in single query
+    const result = await pool.query(
+      `DELETE FROM Room r
+       USING Hotel h
+       WHERE r.HotelID = h.HotelID
+       AND r.RoomID = $1 
+       AND h.HostID = $2
+       RETURNING r.RoomID`,
       [id, hostId]
     );
 
-    if (ownershipCheck.rows.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(403).json({ error: 'Not authorized to delete this room' });
     }
-
-    await pool.query('DELETE FROM Room WHERE RoomID = $1', [id]);
 
     res.json({ message: 'Room deleted successfully' });
   } catch (error) {

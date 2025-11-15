@@ -7,11 +7,11 @@ const RoomCard = ({ room, checkinDate, checkoutDate }) => {
   
   // Validate and provide defaults for room data
   const roomType = room?.room_type?.trim() || 'Standard Room';
-  const roomNumber = room?.roomnumber?.trim() || 'N/A';
+  const roomNumber = room?.roomid?.trim() || 'N/A';
   const roomView = room?.position_view?.trim() || 'Standard View';
   const roomStatus = room?.room_status?.trim() || 'Unknown';
-  const roomRating = room?.room_rating;
-  const roomDesc = room?.room_desc?.trim();
+  const roomRating = room?.overall_rating;
+  const roomDesc = room?.room_description?.trim();
   const costPerNight = room?.cost_per_night;
   const roomId = room?.roomid;
 

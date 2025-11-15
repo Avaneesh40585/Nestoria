@@ -44,14 +44,14 @@ const HotelDetails = () => {
     
     return {
       ...hotelData,
-      hotelname: hotelData.hotelname?.trim() || 'Hotel Name Not Available',
-      hoteladdress: hotelData.hoteladdress?.trim() || 'Address Not Available',
-      hoteldesc: hotelData.hoteldesc?.trim() || 'No description available for this hotel.',
-      hotelimg: hotelData.hotelimg?.trim() || 'https://via.placeholder.com/1200x400?text=Hotel+Image',
-      overallrating: hotelData.overallrating || null,
+      hotel_name: hotelData.hotel_name?.trim() || 'Hotel Name Not Available',
+      hotel_address: hotelData.hotel_address?.trim() || 'Address Not Available',
+      hotel_description: hotelData.hotel_description?.trim() || 'No description available for this hotel.',
+      hotel_img: hotelData.hotel_img?.trim() || 'https://via.placeholder.com/1200x400?text=Hotel+Image',
+      overall_rating: hotelData.overall_rating || null,
       checkin_time: hotelData.checkin_time?.trim() || 'Not Available',
       checkout_time: hotelData.checkout_time?.trim() || 'Not Available',
-      contactreceptionist: hotelData.contactreceptionist?.trim() || 'Contact information not available'
+      receptionist_number: hotelData.receptionist_number?.trim() || 'Contact information not available'
     };
   };
 
@@ -66,7 +66,8 @@ const HotelDetails = () => {
     ).map(amenity => ({
       ...amenity,
       amenity_name: amenity.amenity_name.trim(),
-      availability_hrs: amenity.availability_hrs?.trim() || '24/7'
+      is_available: amenity.is_available !== undefined ? amenity.is_available : true,
+      additional_info: amenity.additional_info?.trim() || '24/7'
     }));
   };
 
@@ -77,12 +78,12 @@ const HotelDetails = () => {
     return roomsData.filter(room => room && room.roomid).map(room => ({
       ...room,
       room_type: room.room_type?.trim() || 'Standard Room',
-      roomnumber: room.roomnumber?.trim() || 'N/A',
+      roomid: room.roomid?.trim() || 'N/A',
       position_view: room.position_view?.trim() || 'Standard View',
       room_status: room.room_status?.trim() || 'Unknown',
       cost_per_night: room.cost_per_night && !isNaN(room.cost_per_night) ? room.cost_per_night : null,
-      room_rating: room.room_rating || null,
-      room_desc: room.room_desc?.trim() || ''
+      overall_rating: room.overall_rating || null,
+      room_description: room.room_description?.trim() || ''
     }));
   };
 
@@ -113,7 +114,7 @@ const HotelDetails = () => {
       reviews.push({
         id: 1,
         author: 'Guest Review',
-        rating: hotel.overallrating || 4.0,
+        rating: hotel.overall_rating || 4.0,
         date: 'Recent',
         comment: reviewText.trim()
       });
@@ -173,7 +174,7 @@ const HotelDetails = () => {
             // Plain text review without rating
             parsed.push({
               customer: 'Guest',
-              rating: hotel.overallrating || 4,
+              rating: hotel.overall_rating || 4,
               review: reviewStr.trim(),
               date: new Date().toISOString()
             });
@@ -241,22 +242,22 @@ const HotelDetails = () => {
     <div className="hotel-details-page">
       <div className="hotel-hero">
         <img 
-          src={hotel.hotelimg || 'https://via.placeholder.com/1200x400'} 
-          alt={hotel.hotelname}
+          src={hotel.hotel_img || 'https://via.placeholder.com/1200x400'} 
+          alt={hotel.hotel_name}
           className="hotel-hero-image"
         />
         <div className="hotel-hero-overlay">
           <div className="container">
-            <h1 className="hotel-title">{hotel.hotelname}</h1>
+            <h1 className="hotel-title">{hotel.hotel_name}</h1>
             <div className="hotel-meta">
               <span className="hotel-rating">
                 <FaStar /> 
-                {hotel.overallrating && !isNaN(hotel.overallrating) 
-                  ? parseFloat(hotel.overallrating).toFixed(1) 
+                {hotel.overall_rating && !isNaN(hotel.overall_rating) 
+                  ? parseFloat(hotel.overall_rating).toFixed(1) 
                   : 'Not Rated'}
               </span>
               <span className="hotel-location">
-                <FaMapMarkerAlt /> {hotel.hoteladdress}
+                <FaMapMarkerAlt /> {hotel.hotel_address}
               </span>
               <button className="see-reviews-btn" onClick={scrollToReviews}>
                 <FaStar /> See Reviews
@@ -274,7 +275,7 @@ const HotelDetails = () => {
               <div className="header-divider"></div>
             </div>
             <div className="description-content">
-              {formatDescription(hotel.hoteldesc).map((paragraph, index) => (
+              {formatDescription(hotel.hotel_description).map((paragraph, index) => (
                 <p key={index} className="description-paragraph">{paragraph}</p>
               ))}
             </div>
@@ -298,7 +299,7 @@ const HotelDetails = () => {
               <div className="info-item">
                 <FaPhoneAlt className="info-icon" />
                 <div>
-                  <strong>Contact:</strong> {hotel.contactreceptionist}
+                  <strong>Contact:</strong> {hotel.receptionist_number}
                 </div>
               </div>
             </div>
@@ -317,7 +318,7 @@ const HotelDetails = () => {
                     <div>
                       <h4>{amenity.amenity_name}</h4>
                       <p className="amenity-hours">
-                        {amenity.availability_hrs || 'Available 24/7'}
+                        {amenity.additional_info || 'Available 24/7'}
                       </p>
                     </div>
                   </div>

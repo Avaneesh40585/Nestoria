@@ -98,7 +98,7 @@ const CustomerProfile = () => {
     try {
       const response = await customerAPI.updateProfile({
         full_name: formData.full_name,
-        phone_number: formData.phonenumber,
+        phone_number: formData.phone_number,
         gender: formData.gender,
         age: parseInt(formData.age),
         address: formData.address

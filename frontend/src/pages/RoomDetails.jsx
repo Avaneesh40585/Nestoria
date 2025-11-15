@@ -46,15 +46,15 @@ const RoomDetails = () => {
     return {
       ...roomData,
       room_type: roomData.room_type?.trim() || 'Room Type Not Available',
-      hotelname: roomData.hotelname?.trim() || 'Hotel Name Not Available',
-      hoteladdress: roomData.hoteladdress?.trim() || 'Address Not Available',
-      roomnumber: roomData.roomnumber?.trim() || 'Not Available',
+      hotel_name: roomData.hotel_name?.trim() || 'Hotel Name Not Available',
+      hotel_address: roomData.hotel_address?.trim() || 'Address Not Available',
+      roomid: roomData.roomid?.trim() || 'Not Available',
       position_view: roomData.position_view?.trim() || 'Standard View',
       room_status: roomData.room_status?.trim() || 'Unknown',
-      room_rating: roomData.room_rating || null,
+      overall_rating: roomData.overall_rating || null,
       checkin_time: roomData.checkin_time?.trim() || 'Not Available',
       checkout_time: roomData.checkout_time?.trim() || 'Not Available',
-      room_desc: roomData.room_desc?.trim() || '',
+      room_description: roomData.room_description?.trim() || '',
       cost_per_night: roomData.cost_per_night && !isNaN(roomData.cost_per_night) ? roomData.cost_per_night : null,
       room_review: roomData.room_review?.trim() || ''
     };
@@ -71,7 +71,8 @@ const RoomDetails = () => {
     ).map(amenity => ({
       ...amenity,
       amenity_name: amenity.amenity_name.trim(),
-      working_status: amenity.working_status !== undefined ? amenity.working_status : true
+      is_available: amenity.is_available !== undefined ? amenity.is_available : true,
+      additional_info: amenity.additional_info?.trim() || '24/7'
     }));
   };
 
@@ -99,7 +100,7 @@ const RoomDetails = () => {
       reviews.push({
         id: 1,
         author: 'Guest Review',
-        rating: room.room_rating || 4.0,
+        rating: room.overall_rating || 4.0,
         date: 'Recent',
         comment: reviewText.trim()
       });
@@ -161,7 +162,7 @@ const RoomDetails = () => {
             // Plain text review without rating
             parsed.push({
               customer: 'Guest',
-              rating: room.room_rating || 4,
+              rating: room.overall_rating || 4,
               review: reviewStr.trim(),
               date: new Date().toISOString()
             });
@@ -222,7 +223,7 @@ const RoomDetails = () => {
       state: { 
         roomId: room.roomid,
         roomType: room.room_type,
-        hotelName: room.hotelname,
+        hotelName: room.hotel_name,
         costPerNight: room.cost_per_night,
         checkinDate: checkinParam || null,
         checkoutDate: checkoutParam || null
@@ -258,8 +259,8 @@ const RoomDetails = () => {
           <div className="room-header-section">
             <div>
               <h1>{room.room_type}</h1>
-              <p className="hotel-name">{room.hotelname}</p>
-              <p className="hotel-address">{room.hoteladdress}</p>
+              <p className="hotel-name">{room.hotel_name}</p>
+              <p className="hotel-address">{room.hotel_address}</p>
             </div>
             <button className="see-reviews-btn-room" onClick={scrollToReviews}>
               <FaStar /> See Reviews
@@ -267,8 +268,8 @@ const RoomDetails = () => {
             <div className="room-rating-badge">
               <FaStar className="star-icon" />
               <span>
-                {room.room_rating && !isNaN(room.room_rating) 
-                  ? parseFloat(room.room_rating).toFixed(1) 
+                {room.overall_rating && !isNaN(room.overall_rating) 
+                  ? parseFloat(room.overall_rating).toFixed(1) 
                   : 'Not Rated'}
               </span>
             </div>
@@ -281,7 +282,7 @@ const RoomDetails = () => {
                 <div className="info-grid">
                   <div className="info-item">
                     <strong>Room Number:</strong>
-                    <span>{room.roomnumber}</span>
+                    <span>{room.roomid}</span>
                   </div>
                   <div className="info-item">
                     <strong>View:</strong>
@@ -311,7 +312,7 @@ const RoomDetails = () => {
                     <div className="header-divider"></div>
                   </div>
                   <div className="description-content">
-                    {formatDescription(room.room_desc).map((paragraph, index) => (
+                    {formatDescription(room.room_description).map((paragraph, index) => (
                       <p key={index} className="description-paragraph">{paragraph}</p>
                     ))}
                   </div>
@@ -333,7 +334,7 @@ const RoomDetails = () => {
                         <div key={amenity.amenityid} className="amenity-badge">
                           <AmenityIcon className="amenity-icon-small" />
                           <span>{amenity.amenity_name}</span>
-                          {!amenity.working_status && (
+                          {!amenity.is_available && (
                             <span className="not-working">(Not Working)</span>
                           )}
                         </div>
