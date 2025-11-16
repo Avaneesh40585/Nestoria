@@ -651,16 +651,23 @@ const HostDashboard = () => {
                           style={{
                             display: 'inline-block',
                             padding: '10px 20px',
-                            backgroundColor: '#007bff',
-                            color: 'white',
+                            background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                            color: '#000',
                             borderRadius: '6px',
                             cursor: 'pointer',
                             fontSize: '14px',
-                            fontWeight: '500',
-                            transition: 'background-color 0.2s'
+                            fontWeight: '600',
+                            transition: 'all 0.2s ease',
+                            border: '1px solid #DAA520'
                           }}
-                          onMouseEnter={(e) => e.target.style.backgroundColor = '#0056b3'}
-                          onMouseLeave={(e) => e.target.style.backgroundColor = '#007bff'}
+                          onMouseEnter={(e) => {
+                            e.target.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.6)';
+                            e.target.style.transform = 'translateY(-2px)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.boxShadow = 'none';
+                            e.target.style.transform = 'translateY(0)';
+                          }}
                         >
                           📁 Choose Image from Files
                         </label>
@@ -691,15 +698,27 @@ const HostDashboard = () => {
                             onClick={() => toggleHotelAmenity(amenity.id)}
                             style={{
                               padding: '8px 16px',
-                              border: (hotelForm.amenities || []).includes(amenity.id) ? '2px solid #007bff' : '2px solid #ced4da',
-                              backgroundColor: (hotelForm.amenities || []).includes(amenity.id) ? '#007bff' : '#fff',
-                              color: (hotelForm.amenities || []).includes(amenity.id) ? '#fff' : '#333',
+                              border: (hotelForm.amenities || []).includes(amenity.id) ? '2px solid #FFD700' : '2px solid #333333',
+                              background: (hotelForm.amenities || []).includes(amenity.id) ? 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)' : '#2a2a2a',
+                              color: (hotelForm.amenities || []).includes(amenity.id) ? '#000' : '#ffffff',
                               borderRadius: '20px',
                               cursor: 'pointer',
                               fontSize: '14px',
                               fontWeight: '500',
                               transition: 'all 0.2s ease',
                               outline: 'none'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!(hotelForm.amenities || []).includes(amenity.id)) {
+                                e.target.style.borderColor = '#FFD700';
+                                e.target.style.backgroundColor = '#3a3a3a';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!(hotelForm.amenities || []).includes(amenity.id)) {
+                                e.target.style.borderColor = '#333333';
+                                e.target.style.backgroundColor = '#2a2a2a';
+                              }
                             }}
                           >
                             {amenity.name}
@@ -826,16 +845,23 @@ const HostDashboard = () => {
                                 style={{
                                   display: 'inline-block',
                                   padding: '10px 20px',
-                                  backgroundColor: '#007bff',
-                                  color: 'white',
+                                  background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                                  color: '#000',
                                   borderRadius: '6px',
                                   cursor: 'pointer',
                                   fontSize: '14px',
-                                  fontWeight: '500',
-                                  transition: 'background-color 0.2s'
+                                  fontWeight: '600',
+                                  transition: 'all 0.2s ease',
+                                  border: '1px solid #DAA520'
                                 }}
-                                onMouseEnter={(e) => e.target.style.backgroundColor = '#0056b3'}
-                                onMouseLeave={(e) => e.target.style.backgroundColor = '#007bff'}
+                                onMouseEnter={(e) => {
+                                  e.target.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.6)';
+                                  e.target.style.transform = 'translateY(-2px)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.boxShadow = 'none';
+                                  e.target.style.transform = 'translateY(0)';
+                                }}
                               >
                                 📁 Choose Image from Files
                               </label>
@@ -866,15 +892,27 @@ const HostDashboard = () => {
                                   onClick={() => toggleEditHotelAmenity(amenity.id)}
                                   style={{
                                     padding: '8px 16px',
-                                    border: (editForm.amenities || []).includes(amenity.id) ? '2px solid #007bff' : '2px solid #ced4da',
-                                    backgroundColor: (editForm.amenities || []).includes(amenity.id) ? '#007bff' : '#fff',
-                                    color: (editForm.amenities || []).includes(amenity.id) ? '#fff' : '#333',
+                                    border: (editForm.amenities || []).includes(amenity.id) ? '2px solid #FFD700' : '2px solid #333333',
+                                    background: (editForm.amenities || []).includes(amenity.id) ? 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)' : '#2a2a2a',
+                                    color: (editForm.amenities || []).includes(amenity.id) ? '#000' : '#ffffff',
                                     borderRadius: '20px',
                                     cursor: 'pointer',
                                     fontSize: '14px',
                                     fontWeight: '500',
                                     transition: 'all 0.2s ease',
                                     outline: 'none'
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (!(editForm.amenities || []).includes(amenity.id)) {
+                                      e.target.style.borderColor = '#FFD700';
+                                      e.target.style.backgroundColor = '#3a3a3a';
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (!(editForm.amenities || []).includes(amenity.id)) {
+                                      e.target.style.borderColor = '#333333';
+                                      e.target.style.backgroundColor = '#2a2a2a';
+                                    }
                                   }}
                                 >
                                   {amenity.name}
@@ -941,17 +979,20 @@ const HostDashboard = () => {
                         {hotel.amenities && hotel.amenities.length > 0 && (
                           <div style={{ marginTop: '10px' }}>
                             <strong>Amenities:</strong>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '5px' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
                               {hotel.amenities.map(amenityId => {
                                 const amenity = availableHotelAmenities.find(a => a.id === amenityId);
                                 return amenity ? (
                                   <span 
                                     key={amenityId}
                                     style={{
-                                      padding: '4px 8px',
-                                      backgroundColor: '#e9ecef',
-                                      borderRadius: '4px',
-                                      fontSize: '0.85rem'
+                                      padding: '6px 12px',
+                                      background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                                      color: '#000',
+                                      borderRadius: '6px',
+                                      fontSize: '0.85rem',
+                                      fontWeight: '500',
+                                      border: '1px solid #DAA520'
                                     }}
                                   >
                                     {amenity.name}

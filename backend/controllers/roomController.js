@@ -250,7 +250,7 @@ exports.getRoomsByHotel = async (req, res) => {
     const { hotelId } = req.params;
 
     const result = await pool.query(
-      'SELECT * FROM Room WHERE HotelID = $1 ORDER BY Cost_per_night',
+      'SELECT * FROM Room WHERE HotelID = $1 ORDER BY Overall_Score DESC NULLS LAST, Overall_Rating DESC, Cost_per_night',
       [hotelId]
     );
 

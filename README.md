@@ -2,6 +2,17 @@
 
 A full-stack hotel booking web application built with PostgreSQL, Node.js/Express, and React. Features dual authentication systems (Customers & Hosts), complete CRUD operations, Firebase & Supabase integration for file storage, and production-ready deployment configuration.
 
+## 🆕 Recent Updates
+
+- ✅ **Image Upload Optimization**: Automatic resizing to 1200×800px with 90% compression
+- ✅ **Supabase Integration**: Primary storage solution with service role key support
+- ✅ **Database Schema Updates**: TEXT columns for HotelImg and Room_img
+- ✅ **Inline Editing**: Edit hotels, rooms, and profiles without page navigation
+- ✅ **Enhanced Host Dashboard**: Tabbed interface with statistics and property management
+- ✅ **Form UX Improvements**: Auto-hide forms after save, button placement optimizations
+- ✅ **Windows Compatibility**: PowerShell-specific commands and troubleshooting
+- ✅ **Review System**: Dedicated tables for hotel and room reviews
+
 ## 🏗️ Project Structure
 
 ```
@@ -113,9 +124,12 @@ Nestoria/
 - 🌐 RESTful API architecture with Express.js
 - 📱 Responsive design with custom CSS
 - ⚡ Real-time room availability checking
-- ☁️ Cloud storage integration (Firebase & Supabase)
+- ☁️ Cloud storage integration (Supabase primary, Firebase legacy)
+- 🖼️ Automatic image optimization (max 1200×800px, 90% quality)
 - 🚀 Production deployment on Render.com
 - 🔄 CORS configuration for cross-origin requests
+- 📋 Inline editing for host properties and profile
+- 🎯 Tab-based navigation with state management
 
 ## 🛠️ Tech Stack
 
@@ -123,23 +137,25 @@ Nestoria/
 
 - **Runtime:** Node.js
 - **Framework:** Express.js
-- **Database:** PostgreSQL 14+ with pg driver
-- **Authentication:** JWT (jsonwebtoken), bcryptjs
-- **Storage:** Firebase Admin SDK, Supabase
-- **File Upload:** Multer
-- **Other:** CORS, dotenv, body-parser
+- **Database:** PostgreSQL 14+ with pg driver (v8.16.3)
+- **Authentication:** JWT (jsonwebtoken v9.0.2), bcryptjs (v3.0.3)
+- **Storage:** Supabase JS (v2.81.1), Firebase Admin SDK (v13.6.0)
+- **File Upload:** Multer (v2.0.2)
+- **Other:** CORS, dotenv (v16.3.1), body-parser (v1.20.2)
+- **Dev Tools:** nodemon (v3.0.1)
 
 ### Frontend
 
 - **Library:** React 18.2
-- **Routing:** React Router DOM v6
-- **HTTP Client:** Axios
+- **Routing:** React Router DOM v6.20.0
+- **HTTP Client:** Axios (v1.6.2)
 - **State Management:** React Context API
-- **Date Handling:** date-fns, react-datepicker
-- **Icons:** react-icons
-- **Storage:** Firebase
-- **Build Tool:** Create React App (react-scripts)
+- **Date Handling:** date-fns (v2.30.0), react-datepicker (v4.16.0)
+- **Icons:** react-icons (v4.12.0)
+- **Storage:** Firebase (v12.6.0)
+- **Build Tool:** Create React App (react-scripts v5.0.1)
 - **Styling:** Custom CSS
+- **Other:** @popperjs/core (v2.11.8)
 
 ### Database
 
@@ -154,8 +170,8 @@ Nestoria/
 - **Node.js** v16 or higher
 - **PostgreSQL** v14 or higher
 - **npm** or yarn package manager
-- **Firebase** account (for image storage - optional)
-- **Supabase** account (for alternative storage - optional)
+- **Supabase** account (for image storage - **Required for image uploads**)
+- **Firebase** account (for legacy support - optional)
 
 ### 1️⃣ Database Setup
 
@@ -171,11 +187,25 @@ Nestoria/
    psql -d nestoria_db -f database/schema.sql
    ```
 
-3. **Seed the database with sample data (optional):**
+   **Windows PowerShell users:**
+   ```powershell
+   $env:PGPASSWORD='your_password'; psql -h localhost -p 5432 -U postgres -d nestoria_db -f database\schema.sql
+   ```
+
+3. **Seed the database with sample data (recommended for testing):**
 
    ```bash
    psql -d nestoria_db -f database/seed.sql
    ```
+
+   **Windows PowerShell users:**
+   ```powershell
+   $env:PGPASSWORD='your_password'; psql -h localhost -p 5432 -U postgres -d nestoria_db -f database\seed.sql
+   ```
+
+   **Test Credentials (from seed data):**
+   - Host accounts: Any seeded host email with password `Password123!`
+   - Customer accounts: Created during registration
 
 4. **Add triggers (optional):**
 
@@ -183,7 +213,7 @@ Nestoria/
    psql -d nestoria_db -f database/trigger.sql
    ```
 
-5. **If using Supabase, run Supabase-specific setup:**
+5. **Run Supabase-specific setup (if using Supabase):**
    ```bash
    psql -d nestoria_db -f database/supabase.sql
    ```
@@ -213,11 +243,12 @@ Nestoria/
    DB_PASSWORD=your_password
    JWT_SECRET=your_super_secret_key
 
-   # Optional: Supabase configuration
-   SUPABASE_URL=your_supabase_url
+   # Supabase configuration (REQUIRED for image uploads)
+   SUPABASE_URL=your_supabase_project_url
    SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+   # Note: Use SERVICE_ROLE_KEY (not ANON_KEY) for backend operations
 
-   # Optional: Firebase configuration (handled via firebase.js)
+   # Optional: Firebase configuration (legacy support)
    ```
 
 4. **Start the server:**
@@ -264,22 +295,32 @@ Nestoria/
 
    ✅ Frontend will run on `http://localhost:3000`
 
-### 4️⃣ File Storage Setup (Optional)
+### 4️⃣ File Storage Setup (Required for Image Uploads)
 
-**Firebase Setup:**
+**Supabase Setup (Primary Storage):**
+
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Navigate to **Storage** in the Supabase dashboard
+3. Create a new **public** storage bucket named `hotel-images`
+4. Go to **Settings → API** to find your credentials:
+   - **Project URL** (SUPABASE_URL)
+   - **service_role key** (SUPABASE_SERVICE_ROLE_KEY) - **Not the anon key!**
+5. Add these credentials to your backend `.env` file
+6. Ensure the bucket has public access for image viewing
+
+**Important Notes:**
+- The **SERVICE_ROLE_KEY** is required for backend upload operations
+- The **anon key** is insufficient for admin operations
+- Images are automatically resized to max 1200×800px and compressed to 90% quality
+- Supported formats: JPEG, PNG, WebP
+
+**Firebase Setup (Optional - Legacy Support):**
 
 1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
 2. Enable Storage in Firebase Console
 3. Download service account key JSON
 4. Update `backend/config/firebase.js` with your credentials
 5. Update `frontend/src/config/firebase.js` with your web app config
-
-**Supabase Setup:**
-
-1. Create a Supabase project at [supabase.com](https://supabase.com)
-2. Create a storage bucket for images
-3. Add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to backend `.env`
-4. Update `backend/config/supabase.js` if needed
 
 ## 📡 API Endpoints
 
@@ -365,14 +406,14 @@ The application uses a comprehensive PostgreSQL schema with 10 main tables:
 
 - **Customer** - Customer account information
 - **Host** - Host account information
-- **Hotel** - Hotel properties with ratings and images
-- **Room** - Individual rooms with composite key (HotelID, RoomID)
+- **Hotel** - Hotel properties with ratings and images (HotelImg as TEXT)
+- **Room** - Individual rooms with composite key (HotelID, RoomID) and Room_img column for images
 - **Amenities** - Master list of available amenities
 - **Hotel_Amenities** - Junction table for hotel amenities
 - **Room_Amenities** - Junction table for room amenities
 - **Booking** - Booking transactions with date ranges
-- **Customer_Hotel_Review** - Hotel reviews and ratings
-- **Customer_Room_Review** - Room reviews and ratings
+- **Customer_Hotel_Review** - Hotel reviews and ratings (separate table, not text field)
+- **Customer_Room_Review** - Room reviews and ratings (separate table, not text field)
 
 Key relationships:
 
@@ -426,9 +467,11 @@ The project is configured for deployment on **Render.com** using the included `r
 
 3. **Configure Environment Variables:**
 
-   - Add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (if using Supabase)
-   - Add Firebase credentials (if using Firebase)
+   - Add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (**required for image uploads**)
+   - Ensure SERVICE_ROLE_KEY is used (not anon key)
+   - Add Firebase credentials (optional, for legacy support)
    - JWT_SECRET is auto-generated
+   - Add `REACT_APP_API_URL` for frontend
 
 4. **Deploy:**
    - Render will automatically build and deploy both services
@@ -451,15 +494,51 @@ npm run build   # Create production build
 npm test        # Run tests
 ```
 
+## 📌 Important Notes
+
+### Image Storage Requirements
+- **Supabase is required** for image upload functionality to work
+- Must use **SERVICE_ROLE_KEY** (not anon key) in backend `.env`
+- Create a public bucket named exactly `hotel-images` in Supabase Storage
+- Images are automatically optimized (max 1200×800px, 90% quality)
+
+### Database Considerations
+- Image columns (HotelImg, Room_img) are TEXT type to support large image URLs
+- Reviews stored in dedicated tables (Customer_Hotel_Review, Customer_Room_Review)
+- Composite keys used for rooms (HotelID, RoomID)
+- Cascading deletes ensure referential integrity
+
+### Windows Development
+- Use PowerShell syntax for environment variables: `$env:VARIABLE='value'`
+- May need to set execution policy: `Set-ExecutionPolicy RemoteSigned`
+- Use backslashes for file paths in commands: `database\schema.sql`
+
+### Authentication
+- Separate JWT flows for customers and hosts
+- Test credentials from seed data: email with password `Password123!`
+- Tokens stored in localStorage with 24-hour expiry
+
+### UI/UX Patterns
+- Inline editing for host properties and profiles
+- Forms auto-hide after successful save
+- Tab-based navigation with state persistence
+- Save/Cancel buttons in header area with icons
+
 ## 🔧 Key Components
 
 ### Backend Controllers
 
 - **authController.js**: Handles registration/login for customers and hosts
-- **hotelController.js**: CRUD operations for hotels
-- **roomController.js**: Room management with composite key support
+- **hotelController.js**: CRUD operations for hotels with image upload support
+- **roomController.js**: Room management with composite key support and image handling
 - **bookingController.js**: Booking creation, cancellation, and retrieval
-- **reviewController.js**: Hotel and room review system
+- **reviewController.js**: Hotel and room review system (dedicated tables)
+- **customerController.js**: Customer profile management
+- **hostController.js**: Host profile and dashboard statistics
+
+### Backend Services
+
+- **uploadService.js**: Handles image uploads to Supabase/Firebase with automatic resizing (1200×800px max, 90% quality)
 
 ### Frontend Pages
 
@@ -467,8 +546,15 @@ npm test        # Run tests
 - **Home.jsx**: Landing page with search
 - **HotelsList.jsx**: Search results with filters
 - **HotelDetails.jsx**: Hotel information and room listings
-- **HostDashboard.jsx**: Host statistics and property management
-- **CustomerProfile.jsx**: Booking history and profile
+- **RoomDetails.jsx**: Individual room details with booking interface
+- **HostDashboard.jsx**: Tabbed dashboard with hotels, rooms, bookings, and inline editing
+- **HostProfile.jsx**: Host profile management with inline edit pattern
+- **CustomerProfile.jsx**: Booking history and profile management
+- **BookingPage.jsx**: Booking interface with date selection
+- **CompleteProfile.jsx**: Profile completion flow
+- **AboutUs.jsx**: About page with team information
+- **TermsOfService.jsx**: Terms and conditions
+- **AddRooms.jsx**: Room creation interface for hosts
 
 ### Authentication Flow
 
@@ -478,6 +564,54 @@ npm test        # Run tests
 4. AuthContext provides user state globally
 5. ProtectedRoute guards authenticated pages
 6. authMiddleware verifies JWT on backend
+
+## 🐞 Troubleshooting
+
+### Common Issues
+
+**Windows PowerShell Execution Policy:**
+If you encounter script execution errors when running npm commands:
+```powershell
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+Run this in an elevated PowerShell window.
+
+**Port Already in Use (EADDRINUSE):**
+Before restarting the backend:
+1. Check for processes using port 5000
+2. Terminate any existing Node.js processes
+3. Use Task Manager or command: `netstat -ano | findstr :5000`
+
+**Database Connection Issues:**
+- Verify PostgreSQL service is running
+- Check credentials in `.env` file
+- Ensure `nestoria_db` database exists
+- For Windows, use PowerShell syntax for psql commands with `$env:PGPASSWORD`
+
+**Image Upload Failures:**
+- Verify you're using `SUPABASE_SERVICE_ROLE_KEY` (not anon key)
+- Check Supabase bucket name is exactly `hotel-images`
+- Ensure bucket has public access enabled
+- Verify bucket policies in Supabase dashboard
+
+**Database Schema Issues:**
+- If HotelImg or Room_img columns fail, ensure they're defined as `TEXT` (not VARCHAR)
+- To reset database:
+  ```powershell
+  # Terminate connections
+  psql -U postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='nestoria_db';"
+  # Drop and recreate
+  dropdb nestoria_db
+  createdb nestoria_db
+  # Re-run schema and seed
+  $env:PGPASSWORD='your_password'; psql -h localhost -p 5432 -U postgres -d nestoria_db -f database\schema.sql
+  $env:PGPASSWORD='your_password'; psql -h localhost -p 5432 -U postgres -d nestoria_db -f database\seed.sql
+  ```
+
+**Form Visibility Issues:**
+- Forms should auto-hide after successful save
+- Only appear when triggered by action buttons
+- Check browser console for React state errors
 
 ## 🤝 Contributing
 

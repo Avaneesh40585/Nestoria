@@ -14,9 +14,11 @@ exports.searchHotels = async (req, res) => {
     const params = [];
     let paramIndex = 1;
 
-    // Location filter (case-insensitive)
+    // Location filter (case-insensitive pattern matching)
     if (location) {
+      // Use ILIKE for case-insensitive pattern matching (simpler and more reliable)
       query += ` AND h.Hotel_Address ILIKE $${paramIndex}`;
+      // Use % wildcards for partial matching
       params.push(`%${location}%`);
       paramIndex++;
     }
@@ -51,7 +53,7 @@ exports.searchHotels = async (req, res) => {
       paramIndex += 2;
     }
 
-    query += ' ORDER BY h.Overall_Rating DESC';
+    query += ' ORDER BY h.Overall_Score DESC NULLS LAST, h.Overall_Rating DESC';
 
     const result = await pool.query(query, params);
 
@@ -89,7 +91,7 @@ exports.getHotelDetails = async (req, res) => {
         [id]
       ),
       pool.query(
-        'SELECT * FROM Room WHERE HotelID = $1 ORDER BY Cost_Per_Night',
+        'SELECT * FROM Room WHERE HotelID = $1 ORDER BY Overall_Score DESC NULLS LAST, Overall_Rating DESC, Cost_Per_Night',
         [id]
       ),
       pool.query(
@@ -122,7 +124,7 @@ exports.getHotelDetails = async (req, res) => {
 exports.getAllHotels = async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT * FROM Hotel ORDER BY Overall_Rating DESC'
+      'SELECT * FROM Hotel ORDER BY Overall_Score DESC NULLS LAST, Overall_Rating DESC'
     );
     res.json({ hotels: result.rows });
   } catch (error) {
@@ -295,5 +297,55 @@ exports.getHostHotels = async (req, res) => {
   } catch (error) {
     console.error('Error fetching host hotels:', error);
     res.status(500).json({ error: 'Failed to fetch hotels', details: error.message });
+  }
+};
+
+// Get platform statistics for About Us page
+exports.getPlatformStats = async (req, res) => {
+  try {
+    // Get total hotels count
+    const hotelsCountQuery = await pool.query('SELECT COUNT(*) as count FROM Hotel');
+    const totalHotels = parseInt(hotelsCountQuery.rows[0].count);
+
+    // Get total customers count
+    const customersCountQuery = await pool.query('SELECT COUNT(*) as count FROM Customer');
+    const totalCustomers = parseInt(customersCountQuery.rows[0].count);
+
+    // Get average hotel rating (rounded to 1 decimal)
+    const avgRatingQuery = await pool.query(
+      'SELECT ROUND(AVG(Overall_Rating)::numeric, 1) as avg_rating FROM Hotel WHERE Overall_Rating > 0'
+    );
+    const avgRating = parseFloat(avgRatingQuery.rows[0].avg_rating) || 0;
+
+    // Get unique cities count from hotel addresses
+    const citiesQuery = await pool.query(
+      `SELECT COUNT(DISTINCT 
+        CASE 
+          WHEN Hotel_Address LIKE '%Chennai%' THEN 'Chennai'
+          WHEN Hotel_Address LIKE '%Hyderabad%' THEN 'Hyderabad'
+          WHEN Hotel_Address LIKE '%Mumbai%' THEN 'Mumbai'
+          WHEN Hotel_Address LIKE '%Delhi%' THEN 'Delhi'
+          WHEN Hotel_Address LIKE '%Bangalore%' THEN 'Bangalore'
+          WHEN Hotel_Address LIKE '%Bengaluru%' THEN 'Bangalore'
+          WHEN Hotel_Address LIKE '%Kolkata%' THEN 'Kolkata'
+          WHEN Hotel_Address LIKE '%Pune%' THEN 'Pune'
+          WHEN Hotel_Address LIKE '%Ahmedabad%' THEN 'Ahmedabad'
+          WHEN Hotel_Address LIKE '%Jaipur%' THEN 'Jaipur'
+          WHEN Hotel_Address LIKE '%Kochi%' THEN 'Kochi'
+          WHEN Hotel_Address LIKE '%Goa%' THEN 'Goa'
+        END
+      ) as cities_count FROM Hotel WHERE Hotel_Address IS NOT NULL`
+    );
+    const citiesCovered = parseInt(citiesQuery.rows[0].cities_count) || 0;
+
+    res.json({
+      totalHotels,
+      totalCustomers,
+      avgRating,
+      citiesCovered
+    });
+  } catch (error) {
+    console.error('Error fetching platform stats:', error);
+    res.status(500).json({ error: 'Failed to fetch statistics', details: error.message });
   }
 };

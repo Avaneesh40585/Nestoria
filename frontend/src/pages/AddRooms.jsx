@@ -14,6 +14,7 @@ const AddRooms = () => {
   const [editForm, setEditForm] = useState({});
   const [showAddForm, setShowAddForm] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [hoveredRoomId, setHoveredRoomId] = useState(null);
   const [availableAmenities] = useState([
     { id: 1, name: 'Wi-Fi' },
     { id: 13, name: 'Air Conditioning' },
@@ -31,16 +32,6 @@ const AddRooms = () => {
     room_status: 'Available',
     amenities: [] // Array of amenity IDs
   }]);
-
-  useEffect(() => {
-    if (hotelId) {
-      fetchHotelDetails();
-    } else {
-      navigate('/host/dashboard');
-    }
-    // Clear field errors on mount
-    setFieldErrors({});
-  }, [hotelId, navigate, fetchHotelDetails]);
 
   const fetchHotelDetails = useCallback(async () => {
     try {
@@ -73,6 +64,16 @@ const AddRooms = () => {
       setLoading(false);
     }
   }, [hotelId, navigate]);
+
+  useEffect(() => {
+    if (hotelId) {
+      fetchHotelDetails();
+    } else {
+      navigate('/host/dashboard');
+    }
+    // Clear field errors on mount
+    setFieldErrors({});
+  }, [hotelId, navigate, fetchHotelDetails]);
 
   // Validation functions
   const validateRoomNumber = (value) => {
@@ -317,9 +318,9 @@ const AddRooms = () => {
   const handleEditRoom = (room) => {
     setEditingRoomId(room.roomid);
     setEditForm({
-      room_number: room.roomnumber,
+      room_number: room.roomid || '',  // roomid IS the room number in the database
       room_type: room.room_type,
-      room_desc: room.room_desc,
+      room_desc: room.room_desc || room.room_description,
       cost_per_night: room.cost_per_night,
       position_view: room.position_view,
       room_status: room.room_status,
@@ -365,7 +366,7 @@ const AddRooms = () => {
     <div className="add-rooms-page">
       <div className="container">
         <div className="page-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
-          <h1 className="page-title" style={{ margin: 0 }}>My Rooms - {hotel?.hotelname}</h1>
+          <h1 className="page-title" style={{ margin: 0 }}>My Rooms - {hotel?.hotel_name}</h1>
           <button 
             className="back-btn" 
             onClick={() => navigate('/host/dashboard', { state: { activeTab: 'hotels' } })}
@@ -399,21 +400,32 @@ const AddRooms = () => {
         {/* Add New Room Button and Form Section */}
         {existingRooms.length > 0 && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2>My Rooms</h2>
+            <h2 style={{ color: '#ffffff', margin: 0 }}>My Rooms</h2>
             <button
               type="button"
               onClick={() => setShowAddForm(!showAddForm)}
               style={{
-                padding: '10px 20px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
+                padding: '12px 24px',
+                background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                color: '#000',
+                fontWeight: '600',
+                border: '1px solid #DAA520',
+                borderRadius: '8px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                fontSize: '16px'
+                gap: '10px',
+                fontSize: '16px',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 8px rgba(255, 215, 0, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 0 30px rgba(255, 215, 0, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 8px rgba(255, 215, 0, 0.3)';
               }}
             >
               <FaPlus /> {showAddForm ? 'Hide Form' : 'Add New Room'}
@@ -425,19 +437,20 @@ const AddRooms = () => {
         {showAddForm && (
           <>
             <div style={{ marginBottom: '20px' }}>
-              <h2>Add New Room</h2>
+              <h2 style={{ color: '#ffffff' }}>Add New Room</h2>
             </div>
             <form onSubmit={handleSubmit}>
           {rooms.map((room, index) => (
             <div key={index} className="room-form-card" style={{ 
-              backgroundColor: '#f8f9fa', 
-              padding: '20px', 
+              background: '#1a1a1a',
+              padding: '25px', 
               marginBottom: '20px', 
-              borderRadius: '8px',
-              border: '1px solid #dee2e6'
+              borderRadius: '12px',
+              border: '2px solid #333333',
+              boxShadow: '0 8px 16px rgba(255, 215, 0, 0.15)'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                <h3>Room {index + 1}</h3>
+                <h3 style={{ color: '#ffffff', margin: 0 }}>Room {index + 1}</h3>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button
                     type="button"
@@ -445,10 +458,12 @@ const AddRooms = () => {
                     disabled={!isRoomFormValid(room, index)}
                     style={{
                       padding: '8px 16px',
-                      backgroundColor: !isRoomFormValid(room, index) ? '#cccccc' : '#007bff',
+                      background: !isRoomFormValid(room, index) 
+                        ? 'linear-gradient(135deg, #cccccc 0%, #999999 100%)' 
+                        : 'linear-gradient(135deg, #28a745 0%, #218838 100%)',
                       color: 'white',
-                      border: 'none',
-                      borderRadius: '5px',
+                      border: !isRoomFormValid(room, index) ? '1px solid #999999' : '1px solid #218838',
+                      borderRadius: '6px',
                       cursor: !isRoomFormValid(room, index) ? 'not-allowed' : 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -457,6 +472,16 @@ const AddRooms = () => {
                       fontWeight: '500',
                       opacity: !isRoomFormValid(room, index) ? 0.6 : 1,
                       transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (isRoomFormValid(room, index)) {
+                        e.target.style.transform = 'translateY(-2px)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (isRoomFormValid(room, index)) {
+                        e.target.style.transform = 'translateY(0)';
+                      }
                     }}
                   >
                     <FaSave /> Save
@@ -485,22 +510,28 @@ const AddRooms = () => {
 
               <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
                 <div className="form-group">
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>Room Number *</label>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#b0b0b0' }}>Room Number *</label>
                   <input
                     type="text"
                     value={room.room_number}
                     onChange={(e) => handleRoomChange(index, 'room_number', e.target.value)}
-                    onBlur={(e) => handleRoomBlur(index, 'room_number', e.target.value)}
+                    onBlur={(e) => {
+                      handleRoomBlur(index, 'room_number', e.target.value);
+                      if (!fieldErrors[index]?.room_number) e.target.style.borderColor = '#333333';
+                    }}
                     placeholder="e.g., 101 or 205"
                     style={{
                       width: '100%',
                       padding: '10px 12px',
-                      border: fieldErrors[index]?.room_number ? '2px solid #dc3545' : '1px solid #ced4da',
+                      border: fieldErrors[index]?.room_number ? '2px solid #dc3545' : '1px solid #333333',
                       borderRadius: '6px',
                       fontSize: '14px',
                       transition: 'border-color 0.15s ease-in-out',
-                      outline: 'none'
+                      outline: 'none',
+                      background: '#2a2a2a',
+                      color: '#ffffff'
                     }}
+                    onFocus={(e) => e.target.style.borderColor = '#FFD700'}
                   />
                   {fieldErrors[index]?.room_number && (
                     <span style={{ color: '#dc3545', fontSize: '13px', marginTop: '4px', display: 'block' }}>
@@ -510,7 +541,7 @@ const AddRooms = () => {
                 </div>
 
                 <div className="form-group">
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>Room Type *</label>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#b0b0b0' }}>Room Type *</label>
                   <select
                     value={room.room_type}
                     onChange={(e) => handleRoomChange(index, 'room_type', e.target.value)}
@@ -518,15 +549,17 @@ const AddRooms = () => {
                     style={{
                       width: '100%',
                       padding: '10px 12px',
-                      border: fieldErrors[index]?.room_type ? '2px solid #dc3545' : '1px solid #ced4da',
+                      border: fieldErrors[index]?.room_type ? '2px solid #dc3545' : '1px solid #333333',
                       borderRadius: '6px',
                       fontSize: '14px',
-                      backgroundColor: 'white',
+                      background: '#2a2a2a',
+                      color: '#ffffff',
                       cursor: 'pointer',
                       transition: 'border-color 0.15s ease-in-out',
                       outline: 'none',
                       appearance: 'auto'
                     }}
+                    onFocus={(e) => e.target.style.borderColor = '#FFD700'}
                   >
                     <option value="">Select Type</option>
                     <option value="Single">Single</option>
@@ -543,7 +576,7 @@ const AddRooms = () => {
                 </div>
 
                 <div className="form-group">
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>Cost per Night (₹) *</label>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#b0b0b0' }}>Cost per Night (₹) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -554,12 +587,15 @@ const AddRooms = () => {
                     style={{
                       width: '100%',
                       padding: '10px 12px',
-                      border: fieldErrors[index]?.cost_per_night ? '2px solid #dc3545' : '1px solid #ced4da',
+                      border: fieldErrors[index]?.cost_per_night ? '2px solid #dc3545' : '1px solid #333333',
                       borderRadius: '6px',
                       fontSize: '14px',
                       transition: 'border-color 0.15s ease-in-out',
-                      outline: 'none'
+                      outline: 'none',
+                      background: '#2a2a2a',
+                      color: '#ffffff'
                     }}
+                    onFocus={(e) => e.target.style.borderColor = '#FFD700'}
                   />
                   {fieldErrors[index]?.cost_per_night && (
                     <span style={{ color: '#dc3545', fontSize: '13px', marginTop: '4px', display: 'block' }}>
@@ -569,7 +605,7 @@ const AddRooms = () => {
                 </div>
 
                 <div className="form-group">
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>Position/View *</label>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#b0b0b0' }}>Position/View *</label>
                   <select
                     value={room.position_view}
                     onChange={(e) => handleRoomChange(index, 'position_view', e.target.value)}
@@ -577,15 +613,17 @@ const AddRooms = () => {
                     style={{
                       width: '100%',
                       padding: '10px 12px',
-                      border: fieldErrors[index]?.position_view ? '2px solid #dc3545' : '1px solid #ced4da',
+                      border: fieldErrors[index]?.position_view ? '2px solid #dc3545' : '1px solid #333333',
                       borderRadius: '6px',
                       fontSize: '14px',
-                      backgroundColor: 'white',
+                      background: '#2a2a2a',
+                      color: '#ffffff',
                       cursor: 'pointer',
                       transition: 'border-color 0.15s ease-in-out',
                       outline: 'none',
                       appearance: 'auto'
                     }}
+                    onFocus={(e) => e.target.style.borderColor = '#FFD700'}
                   >
                     <option value="">Select View</option>
                     <option value="City View">City View</option>
@@ -603,7 +641,7 @@ const AddRooms = () => {
                 </div>
 
                 <div className="form-group">
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>Room Status *</label>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#b0b0b0' }}>Room Status *</label>
                   <select
                     value={room.room_status}
                     onChange={(e) => handleRoomChange(index, 'room_status', e.target.value)}
@@ -611,15 +649,17 @@ const AddRooms = () => {
                     style={{
                       width: '100%',
                       padding: '10px 12px',
-                      border: fieldErrors[index]?.room_status ? '2px solid #dc3545' : '1px solid #ced4da',
+                      border: fieldErrors[index]?.room_status ? '2px solid #dc3545' : '1px solid #333333',
                       borderRadius: '6px',
                       fontSize: '14px',
-                      backgroundColor: 'white',
+                      background: '#2a2a2a',
+                      color: '#ffffff',
                       cursor: 'pointer',
                       transition: 'border-color 0.15s ease-in-out',
                       outline: 'none',
                       appearance: 'auto'
                     }}
+                    onFocus={(e) => e.target.style.borderColor = '#FFD700'}
                   >
                     <option value="Available">Available</option>
                     <option value="Occupied">Occupied</option>
@@ -633,7 +673,7 @@ const AddRooms = () => {
                 </div>
 
                 <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                  <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', color: '#333' }}>Room Amenities</label>
+                  <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', color: '#b0b0b0' }}>Room Amenities</label>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                     {availableAmenities.map((amenity) => (
                       <button
@@ -642,9 +682,9 @@ const AddRooms = () => {
                         onClick={() => toggleAmenity(index, amenity.id)}
                         style={{
                           padding: '8px 16px',
-                          border: (room.amenities || []).includes(amenity.id) ? '2px solid #007bff' : '2px solid #ced4da',
-                          backgroundColor: (room.amenities || []).includes(amenity.id) ? '#007bff' : '#fff',
-                          color: (room.amenities || []).includes(amenity.id) ? '#fff' : '#333',
+                          border: (room.amenities || []).includes(amenity.id) ? '2px solid #FFD700' : '2px solid #333333',
+                          background: (room.amenities || []).includes(amenity.id) ? 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)' : '#2a2a2a',
+                          color: (room.amenities || []).includes(amenity.id) ? '#000' : '#ffffff',
                           borderRadius: '20px',
                           cursor: 'pointer',
                           fontSize: '14px',
@@ -654,14 +694,14 @@ const AddRooms = () => {
                         }}
                         onMouseEnter={(e) => {
                           if (!(room.amenities || []).includes(amenity.id)) {
-                            e.target.style.borderColor = '#007bff';
-                            e.target.style.backgroundColor = '#f0f8ff';
+                            e.target.style.borderColor = '#FFD700';
+                            e.target.style.backgroundColor = '#3a3a3a';
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!(room.amenities || []).includes(amenity.id)) {
-                            e.target.style.borderColor = '#ced4da';
-                            e.target.style.backgroundColor = '#fff';
+                            e.target.style.borderColor = '#333333';
+                            e.target.style.backgroundColor = '#2a2a2a';
                           }
                         }}
                       >
@@ -672,7 +712,7 @@ const AddRooms = () => {
                 </div>
 
                 <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>Room Description</label>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#b0b0b0' }}>Room Description</label>
                   <textarea
                     value={room.room_desc}
                     onChange={(e) => handleRoomChange(index, 'room_desc', e.target.value)}
@@ -681,14 +721,18 @@ const AddRooms = () => {
                     style={{
                       width: '100%',
                       padding: '10px 12px',
-                      border: '1px solid #ced4da',
+                      border: '1px solid #333333',
                       borderRadius: '6px',
                       fontSize: '14px',
                       transition: 'border-color 0.15s ease-in-out',
                       outline: 'none',
                       resize: 'vertical',
-                      fontFamily: 'inherit'
+                      fontFamily: 'inherit',
+                      background: '#2a2a2a',
+                      color: '#ffffff'
                     }}
+                    onFocus={(e) => e.target.style.borderColor = '#FFD700'}
+                    onBlur={(e) => e.target.style.borderColor = '#333333'}
                   />
                 </div>
               </div>
@@ -702,32 +746,46 @@ const AddRooms = () => {
         {existingRooms.length > 0 && (
           <div style={{ marginBottom: '40px' }}>
             {existingRooms.map((room) => (
-              <div key={room.roomid} className="room-form-card" style={{ 
-                backgroundColor: '#fff', 
-                padding: '20px', 
-                marginBottom: '20px', 
-                borderRadius: '8px',
-                border: '1px solid #dee2e6'
-              }}>
+              <div 
+                key={room.roomid} 
+                className="room-form-card" 
+                onMouseEnter={() => setHoveredRoomId(room.roomid)}
+                onMouseLeave={() => setHoveredRoomId(null)}
+                style={{ 
+                  background: '#1a1a1a',
+                  padding: '25px', 
+                  marginBottom: '20px', 
+                  borderRadius: '12px',
+                  border: hoveredRoomId === room.roomid ? '2px solid #FFD700' : '2px solid #333333',
+                  boxShadow: hoveredRoomId === room.roomid 
+                    ? '0 0 30px rgba(255, 215, 0, 0.5), 0 8px 16px rgba(255, 215, 0, 0.15)' 
+                    : '0 8px 16px rgba(255, 215, 0, 0.15)',
+                  transition: 'all 0.3s ease',
+                  transform: hoveredRoomId === room.roomid ? 'translateY(-2px)' : 'translateY(0)'
+                }}>
                 {editingRoomId === room.roomid ? (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                      <h3>Edit Room {room.roomnumber}</h3>
+                      <h3 style={{ color: '#ffffff', margin: 0 }}>Edit Room {room.roomnumber}</h3>
                       <div style={{ display: 'flex', gap: '10px' }}>
                         <button
                           type="button"
                           onClick={() => handleSaveEdit(room.roomid)}
                           style={{
                             padding: '8px 16px',
-                            backgroundColor: '#28a745',
+                            background: 'linear-gradient(135deg, #28a745 0%, #218838 100%)',
                             color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
+                            border: '1px solid #218838',
+                            borderRadius: '6px',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '5px'
+                            gap: '5px',
+                            fontWeight: '500',
+                            transition: 'all 0.2s ease'
                           }}
+                          onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                          onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
                         >
                           <FaSave /> Save
                         </button>
@@ -736,15 +794,19 @@ const AddRooms = () => {
                           onClick={handleCancelEdit}
                           style={{
                             padding: '8px 16px',
-                            backgroundColor: '#6c757d',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
+                            background: '#2a2a2a',
+                            color: '#ffffff',
+                            border: '1px solid #333333',
+                            borderRadius: '6px',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '5px'
+                            gap: '5px',
+                            fontWeight: '500',
+                            transition: 'all 0.2s ease'
                           }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#3a3a3a'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = '#2a2a2a'}
                         >
                           <FaTimes /> Cancel
                         </button>
@@ -753,7 +815,7 @@ const AddRooms = () => {
 
                     <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
                       <div className="form-group">
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>Room Number</label>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#b0b0b0' }}>Room Number</label>
                         <input
                           type="text"
                           value={editForm.room_number || ''}
@@ -761,32 +823,39 @@ const AddRooms = () => {
                           style={{
                             width: '100%',
                             padding: '10px 12px',
-                            border: '1px solid #ced4da',
+                            border: '1px solid #333333',
                             borderRadius: '6px',
                             fontSize: '14px',
                             transition: 'border-color 0.15s ease-in-out',
-                            outline: 'none'
+                            outline: 'none',
+                            background: '#2a2a2a',
+                            color: '#ffffff'
                           }}
+                          onFocus={(e) => e.target.style.borderColor = '#FFD700'}
+                          onBlur={(e) => e.target.style.borderColor = '#333333'}
                         />
                       </div>
 
                       <div className="form-group">
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>Room Type</label>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#b0b0b0' }}>Room Type</label>
                         <select
                           value={editForm.room_type || ''}
                           onChange={(e) => setEditForm({...editForm, room_type: e.target.value})}
                           style={{
                             width: '100%',
                             padding: '10px 12px',
-                            border: '1px solid #ced4da',
+                            border: '1px solid #333333',
                             borderRadius: '6px',
                             fontSize: '14px',
-                            backgroundColor: 'white',
+                            background: '#2a2a2a',
+                            color: '#ffffff',
                             cursor: 'pointer',
                             transition: 'border-color 0.15s ease-in-out',
                             outline: 'none',
                             appearance: 'auto'
                           }}
+                          onFocus={(e) => e.target.style.borderColor = '#FFD700'}
+                          onBlur={(e) => e.target.style.borderColor = '#333333'}
                         >
                           <option value="">Select Type</option>
                           <option value="Single">Single</option>
@@ -798,7 +867,7 @@ const AddRooms = () => {
                       </div>
 
                       <div className="form-group">
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>Cost per Night (₹)</label>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#b0b0b0' }}>Cost per Night (₹)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -807,32 +876,39 @@ const AddRooms = () => {
                           style={{
                             width: '100%',
                             padding: '10px 12px',
-                            border: '1px solid #ced4da',
+                            border: '1px solid #333333',
                             borderRadius: '6px',
                             fontSize: '14px',
                             transition: 'border-color 0.15s ease-in-out',
-                            outline: 'none'
+                            outline: 'none',
+                            background: '#2a2a2a',
+                            color: '#ffffff'
                           }}
+                          onFocus={(e) => e.target.style.borderColor = '#FFD700'}
+                          onBlur={(e) => e.target.style.borderColor = '#333333'}
                         />
                       </div>
 
                       <div className="form-group">
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>Position/View</label>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#b0b0b0' }}>Position/View</label>
                         <select
                           value={editForm.position_view || ''}
                           onChange={(e) => setEditForm({...editForm, position_view: e.target.value})}
                           style={{
                             width: '100%',
                             padding: '10px 12px',
-                            border: '1px solid #ced4da',
+                            border: '1px solid #333333',
                             borderRadius: '6px',
                             fontSize: '14px',
-                            backgroundColor: 'white',
+                            background: '#2a2a2a',
+                            color: '#ffffff',
                             cursor: 'pointer',
                             transition: 'border-color 0.15s ease-in-out',
                             outline: 'none',
                             appearance: 'auto'
                           }}
+                          onFocus={(e) => e.target.style.borderColor = '#FFD700'}
+                          onBlur={(e) => e.target.style.borderColor = '#333333'}
                         >
                           <option value="">Select View</option>
                           <option value="City View">City View</option>
@@ -845,22 +921,25 @@ const AddRooms = () => {
                       </div>
 
                       <div className="form-group">
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>Room Status</label>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#b0b0b0' }}>Room Status</label>
                         <select
                           value={editForm.room_status || ''}
                           onChange={(e) => setEditForm({...editForm, room_status: e.target.value})}
                           style={{
                             width: '100%',
                             padding: '10px 12px',
-                            border: '1px solid #ced4da',
+                            border: '1px solid #333333',
                             borderRadius: '6px',
                             fontSize: '14px',
-                            backgroundColor: 'white',
+                            background: '#2a2a2a',
+                            color: '#ffffff',
                             cursor: 'pointer',
                             transition: 'border-color 0.15s ease-in-out',
                             outline: 'none',
                             appearance: 'auto'
                           }}
+                          onFocus={(e) => e.target.style.borderColor = '#FFD700'}
+                          onBlur={(e) => e.target.style.borderColor = '#333333'}
                         >
                           <option value="Available">Available</option>
                           <option value="Occupied">Occupied</option>
@@ -869,7 +948,7 @@ const AddRooms = () => {
                       </div>
 
                       <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                        <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', color: '#333' }}>Room Amenities</label>
+                        <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', color: '#b0b0b0' }}>Room Amenities</label>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                           {availableAmenities.map((amenity) => (
                             <button
@@ -878,9 +957,9 @@ const AddRooms = () => {
                               onClick={() => toggleEditAmenity(amenity.id)}
                               style={{
                                 padding: '8px 16px',
-                                border: (editForm.amenities || []).includes(amenity.id) ? '2px solid #007bff' : '2px solid #ced4da',
-                                backgroundColor: (editForm.amenities || []).includes(amenity.id) ? '#007bff' : '#fff',
-                                color: (editForm.amenities || []).includes(amenity.id) ? '#fff' : '#333',
+                                border: (editForm.amenities || []).includes(amenity.id) ? '2px solid #FFD700' : '2px solid #333333',
+                                background: (editForm.amenities || []).includes(amenity.id) ? 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)' : '#2a2a2a',
+                                color: (editForm.amenities || []).includes(amenity.id) ? '#000' : '#ffffff',
                                 borderRadius: '20px',
                                 cursor: 'pointer',
                                 fontSize: '14px',
@@ -890,14 +969,14 @@ const AddRooms = () => {
                               }}
                               onMouseEnter={(e) => {
                                 if (!(editForm.amenities || []).includes(amenity.id)) {
-                                  e.target.style.borderColor = '#007bff';
-                                  e.target.style.backgroundColor = '#f0f8ff';
+                                  e.target.style.borderColor = '#FFD700';
+                                  e.target.style.backgroundColor = '#3a3a3a';
                                 }
                               }}
                               onMouseLeave={(e) => {
                                 if (!(editForm.amenities || []).includes(amenity.id)) {
-                                  e.target.style.borderColor = '#ced4da';
-                                  e.target.style.backgroundColor = '#fff';
+                                  e.target.style.borderColor = '#333333';
+                                  e.target.style.backgroundColor = '#2a2a2a';
                                 }
                               }}
                             >
@@ -908,7 +987,7 @@ const AddRooms = () => {
                       </div>
 
                       <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#333' }}>Room Description</label>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#b0b0b0' }}>Room Description</label>
                         <textarea
                           value={editForm.room_desc || ''}
                           onChange={(e) => setEditForm({...editForm, room_desc: e.target.value})}
@@ -916,14 +995,18 @@ const AddRooms = () => {
                           style={{
                             width: '100%',
                             padding: '10px 12px',
-                            border: '1px solid #ced4da',
+                            border: '1px solid #333333',
                             borderRadius: '6px',
                             fontSize: '14px',
                             transition: 'border-color 0.15s ease-in-out',
                             outline: 'none',
                             resize: 'vertical',
-                            fontFamily: 'inherit'
+                            fontFamily: 'inherit',
+                            background: '#2a2a2a',
+                            color: '#ffffff'
                           }}
+                          onFocus={(e) => e.target.style.borderColor = '#FFD700'}
+                          onBlur={(e) => e.target.style.borderColor = '#333333'}
                         />
                       </div>
                     </div>
@@ -931,22 +1014,26 @@ const AddRooms = () => {
                 ) : (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                      <h3>Room {room.roomnumber}</h3>
+                      <h3 style={{ color: '#ffffff', margin: 0 }}>Room {room.roomnumber}</h3>
                       <div style={{ display: 'flex', gap: '10px' }}>
                         <button
                           type="button"
                           onClick={() => handleEditRoom(room)}
                           style={{
                             padding: '8px 16px',
-                            backgroundColor: '#007bff',
+                            background: 'linear-gradient(135deg, #007bff 0%, #0056b3 100%)',
                             color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
+                            border: '1px solid #0056b3',
+                            borderRadius: '6px',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '5px'
+                            gap: '5px',
+                            fontWeight: '500',
+                            transition: 'all 0.2s ease'
                           }}
+                          onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                          onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
                         >
                           <FaEdit /> Edit
                         </button>
@@ -955,15 +1042,19 @@ const AddRooms = () => {
                           onClick={() => handleDeleteRoom(room.roomid)}
                           style={{
                             padding: '8px 16px',
-                            backgroundColor: '#dc3545',
+                            background: 'linear-gradient(135deg, #dc3545 0%, #bd2130 100%)',
                             color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
+                            border: '1px solid #bd2130',
+                            borderRadius: '6px',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '5px'
+                            gap: '5px',
+                            fontWeight: '500',
+                            transition: 'all 0.2s ease'
                           }}
+                          onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                          onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
                         >
                           <FaTrash /> Delete
                         </button>
@@ -971,21 +1062,24 @@ const AddRooms = () => {
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
-                      <div>
-                        <strong>Type:</strong> {room.room_type || 'N/A'}
+                      <div style={{ color: '#ffffff' }}>
+                        <strong style={{ color: '#b0b0b0' }}>Room Number:</strong> {room.roomid || room.roomnumber || 'N/A'}
                       </div>
-                      <div>
-                        <strong>Cost per Night:</strong> ₹{room.cost_per_night || 'N/A'}
+                      <div style={{ color: '#ffffff' }}>
+                        <strong style={{ color: '#b0b0b0' }}>Type:</strong> {room.room_type || 'N/A'}
                       </div>
-                      <div>
-                        <strong>View:</strong> {room.position_view || 'N/A'}
+                      <div style={{ color: '#ffffff' }}>
+                        <strong style={{ color: '#b0b0b0' }}>Cost per Night:</strong> ₹{room.cost_per_night || 'N/A'}
                       </div>
-                      <div>
-                        <strong>Status:</strong> <span style={{ 
+                      <div style={{ color: '#ffffff' }}>
+                        <strong style={{ color: '#b0b0b0' }}>View:</strong> {room.position_view || 'N/A'}
+                      </div>
+                      <div style={{ color: '#ffffff' }}>
+                        <strong style={{ color: '#b0b0b0' }}>Status:</strong> <span style={{ 
                           padding: '6px 14px', 
                           borderRadius: '20px', 
-                          backgroundColor: room.room_status === 'Available' ? '#d1fae5' : '#fee2e2',
-                          color: room.room_status === 'Available' ? '#065f46' : '#991b1b',
+                          backgroundColor: room.room_status === 'Available' ? '#10b981' : '#ef4444',
+                          color: '#ffffff',
                           fontSize: '0.85rem',
                           fontWeight: '600',
                           whiteSpace: 'nowrap',
@@ -993,14 +1087,14 @@ const AddRooms = () => {
                           width: 'fit-content'
                         }}>{room.room_status || 'N/A'}</span>
                       </div>
-                      <div style={{ gridColumn: 'span 2' }}>
-                        <strong>Description:</strong> {room.room_desc || 'No description'}
+                      <div style={{ gridColumn: 'span 2', color: '#ffffff' }}>
+                        <strong style={{ color: '#b0b0b0' }}>Description:</strong> {room.room_desc || 'No description'}
                       </div>
-                      <div>
-                        <strong>Rating:</strong> {room.room_rating || 'Not rated'}
+                      <div style={{ color: '#ffffff' }}>
+                        <strong style={{ color: '#b0b0b0' }}>Rating:</strong> {room.room_rating || 'Not rated'}
                       </div>
                       <div style={{ gridColumn: 'span 2' }}>
-                        <strong>Amenities:</strong>
+                        <strong style={{ color: '#b0b0b0' }}>Amenities:</strong>
                         {room.amenities && room.amenities.length > 0 ? (
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
                             {room.amenities.map((amenityId) => {
@@ -1010,12 +1104,12 @@ const AddRooms = () => {
                                   key={amenityId}
                                   style={{
                                     padding: '6px 12px',
-                                    backgroundColor: '#e7f3ff',
-                                    color: '#0066cc',
-                                    borderRadius: '16px',
+                                    background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                                    color: '#000',
+                                    borderRadius: '6px',
                                     fontSize: '13px',
                                     fontWeight: '500',
-                                    border: '1px solid #b3d9ff'
+                                    border: '1px solid #DAA520'
                                   }}
                                 >
                                   {amenity.name}
@@ -1024,7 +1118,7 @@ const AddRooms = () => {
                             })}
                           </div>
                         ) : (
-                          <span style={{ color: '#6c757d', fontStyle: 'italic' }}> No amenities added</span>
+                          <span style={{ color: '#808080', fontStyle: 'italic' }}> No amenities added</span>
                         )}
                       </div>
                     </div>
@@ -1037,23 +1131,54 @@ const AddRooms = () => {
 
         {/* No rooms message - shown when no rooms exist */}
         {existingRooms.length === 0 && !showAddForm && (
-          <div style={{ textAlign: 'center', padding: '40px', backgroundColor: '#f8f9fa', borderRadius: '8px', marginBottom: '20px' }}>
-            <h3>No rooms added yet</h3>
-            <p style={{ color: '#6c757d', marginBottom: '20px' }}>Start by adding your first room to this hotel</p>
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '60px 40px', 
+            background: '#1a1a1a',
+            border: '2px solid #333333',
+            borderRadius: '12px', 
+            marginBottom: '20px',
+            boxShadow: '0 8px 16px rgba(255, 215, 0, 0.15)'
+          }}>
+            <h3 style={{ 
+              color: '#ffffff', 
+              fontSize: '1.5rem', 
+              marginBottom: '12px',
+              background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>No rooms added yet</h3>
+            <p style={{ 
+              color: '#b0b0b0', 
+              marginBottom: '30px', 
+              fontSize: '1rem' 
+            }}>Start by adding your first room to this hotel</p>
             <button
               type="button"
               onClick={() => setShowAddForm(true)}
               style={{
-                padding: '12px 24px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
+                padding: '14px 28px',
+                background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                color: '#000',
+                fontWeight: '600',
+                border: '1px solid #DAA520',
+                borderRadius: '8px',
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '8px',
-                fontSize: '16px'
+                gap: '10px',
+                fontSize: '16px',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 8px rgba(255, 215, 0, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 0 30px rgba(255, 215, 0, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 8px rgba(255, 215, 0, 0.3)';
               }}
             >
               <FaPlus /> Add Your First Room

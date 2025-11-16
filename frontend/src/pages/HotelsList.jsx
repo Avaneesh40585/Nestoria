@@ -39,9 +39,10 @@ const HotelsList = () => {
   // Auto-apply filter when location is searched from URL and hotels are loaded
   useEffect(() => {
     if (initialLocationSet && hotels.length > 0 && searchedLocation) {
-      // Apply the location filter immediately based on searchedLocation
+      // Apply the location filter with whole-word matching
+      const searchRegex = new RegExp(`\\b${searchedLocation}\\b`, 'i');
       const filtered = hotels.filter(hotel => 
-        hotel.hotel_address?.toLowerCase().includes(searchedLocation.toLowerCase())
+        searchRegex.test(hotel.hotel_address || '')
       );
       setFilteredHotels(filtered);
     }
@@ -104,14 +105,18 @@ const HotelsList = () => {
       let filtered = [...hotels];
 
       if (filters.location) {
+        // Use whole-word matching with regex for better search accuracy
+        const locationRegex = new RegExp(`\\b${filters.location.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
         filtered = filtered.filter(hotel => 
-          hotel.hotel_address?.toLowerCase().includes(filters.location.toLowerCase())
+          locationRegex.test(hotel.hotel_address || '')
         );
       }
 
       if (filters.area) {
+        // Use whole-word matching for area filter as well
+        const areaRegex = new RegExp(`\\b${filters.area.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
         filtered = filtered.filter(hotel => 
-          hotel.hotel_address?.toLowerCase().includes(filters.area.toLowerCase())
+          areaRegex.test(hotel.hotel_address || '')
         );
       }
 
@@ -149,7 +154,19 @@ const HotelsList = () => {
         location: '',
         area: ''
       });
-      setFilteredHotels(hotels);
+      
+      // If there was an initial search location, re-apply it
+      // Otherwise, show all hotels
+      if (searchedLocation && hotels.length > 0) {
+        const searchRegex = new RegExp(`\\b${searchedLocation}\\b`, 'i');
+        const filtered = hotels.filter(hotel => 
+          searchRegex.test(hotel.hotel_address || '')
+        );
+        setFilteredHotels(filtered);
+      } else {
+        setFilteredHotels(hotels);
+      }
+      
       setFilteringInProgress(false);
     }, 300);
   };
@@ -232,7 +249,31 @@ const HotelsList = () => {
                 ) : (
                   <>
                     <p>Try adjusting your filters or search criteria</p>
-                    <button className="btn-primary" onClick={resetFilters} style={{ marginTop: '15px' }}>
+                    <button 
+                      className="btn-reset-filters" 
+                      onClick={resetFilters}
+                      style={{
+                        marginTop: '15px',
+                        padding: '12px 28px',
+                        background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                        color: '#000',
+                        border: '1px solid #DAA520',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 4px 8px rgba(255, 215, 0, 0.3)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.transform = 'translateY(-2px)';
+                        e.target.style.boxShadow = '0 0 30px rgba(255, 215, 0, 0.6)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = '0 4px 8px rgba(255, 215, 0, 0.3)';
+                      }}
+                    >
                       Reset Filters
                     </button>
                   </>

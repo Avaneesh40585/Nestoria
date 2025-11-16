@@ -5,6 +5,7 @@ const { authenticateToken, authorizeHost } = require('../middleware/authMiddlewa
 
 router.get('/search', hotelController.searchHotels);
 router.get('/all', hotelController.getAllHotels);
+router.get('/stats/platform', hotelController.getPlatformStats);
 router.get('/:id', hotelController.getHotelDetails);
 
 // Protected routes (Host only)

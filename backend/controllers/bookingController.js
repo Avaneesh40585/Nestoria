@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const crypto = require('crypto');
 
 // Create booking
 exports.createBooking = async (req, res) => {
@@ -9,7 +10,8 @@ exports.createBooking = async (req, res) => {
       checkin_date,
       checkout_date,
       base_amount,
-      tax_amount
+      tax_amount,
+      final_amount
     } = req.body;
 
     // Check room availability (optimized query)
@@ -53,13 +55,6 @@ exports.createBooking = async (req, res) => {
        base_amount, tax_amount]
     );
 
-    console.log('✅ Booking created successfully:', {
-      bookingId: result.rows[0].bookingid,
-      customerId,
-      hotelId,
-      roomId: room_id
-    });
-
     // Update customer total bookings
     await pool.query(
       'UPDATE Customer SET Total_Bookings = Total_Bookings + 1 WHERE CustomerID = $1',
@@ -80,18 +75,15 @@ exports.createBooking = async (req, res) => {
 exports.getCustomerBookings = async (req, res) => {
   try {
     const customerId = req.user.id;
-    
-    console.log('📋 Fetching bookings for customer:', customerId);
 
     const result = await pool.query(
       `SELECT 
          b.BookingID, b.CustomerID, b.RoomID, b.HotelID,
          b.Checkin_Date, b.Checkout_Date, b.Booking_Date,
-         b.Base_Amount, b.Tax_Amount, 
-         (b.Base_Amount + b.Tax_Amount) as final_amount,
-         b.Booking_Status,
-         r.RoomID as roomnumber, r.Room_Type, 
-         h.Hotel_Name as hotelname, h.Hotel_Address, h.Hotel_Img
+         b.Base_Amount, b.Tax_Amount, b.Booking_Status,
+         (b.Base_Amount + b.Tax_Amount) as Final_Amount,
+         r.RoomID as RoomNumber, r.Room_Type, 
+         h.HotelID, h.Hotel_Name as HotelName, h.Hotel_Address, h.Hotel_Img
        FROM Booking b
        INNER JOIN Room r ON b.RoomID = r.RoomID AND b.HotelID = r.HotelID
        INNER JOIN Hotel h ON r.HotelID = h.HotelID
@@ -99,15 +91,6 @@ exports.getCustomerBookings = async (req, res) => {
        ORDER BY b.Booking_Date DESC`,
       [customerId]
     );
-
-    console.log(`✅ Found ${result.rows.length} bookings for customer ${customerId}`);
-    if (result.rows.length > 0) {
-      console.log('Latest booking:', {
-        id: result.rows[0].bookingid,
-        hotel: result.rows[0].hotelname,
-        amount: result.rows[0].final_amount
-      });
-    }
 
     res.json({ bookings: result.rows });
   } catch (error) {

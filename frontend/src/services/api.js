@@ -36,6 +36,7 @@ export const hotelAPI = {
   getAll: () => api.get('/hotels/all'),
   getDetails: (id) => api.get(`/hotels/${id}`),
   getHostHotels: () => api.get('/hotels/host/my-hotels'),
+  getPlatformStats: () => api.get('/hotels/stats/platform'),
   create: (data) => api.post('/hotels', data),
   update: (id, data) => api.put(`/hotels/${id}`, data),
   delete: (id) => api.delete(`/hotels/${id}`),
