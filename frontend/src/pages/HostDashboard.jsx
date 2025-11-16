@@ -77,6 +77,13 @@ const HostDashboard = () => {
         })
       );
       
+      console.log('🏨 Hotels with amenities:', hotelsWithAmenities);
+      hotelsWithAmenities.forEach((hotel, index) => {
+        console.log(`Hotel ${index + 1}: ${hotel.hotel_name}`);
+        console.log(`  - hotel_img:`, hotel.hotel_img);
+        console.log(`  - Has image:`, !!hotel.hotel_img);
+      });
+      
       setHotels(hotelsWithAmenities);
       setBookings(bookingsRes.data.bookings);
     } catch (error) {
@@ -98,9 +105,24 @@ const HostDashboard = () => {
       // Upload image to Supabase if file is selected
       if (imageFile) {
         console.log('📤 Uploading hotel image to Supabase...');
-        const uploadResult = await uploadHotelImage(imageFile);
-        imageUrl = uploadResult.url;
-        console.log('✅ Image uploaded:', imageUrl);
+        console.log('📄 File details:', {
+          name: imageFile.name,
+          size: imageFile.size,
+          type: imageFile.type
+        });
+        
+        try {
+          const uploadResult = await uploadHotelImage(imageFile);
+          console.log('📥 Upload result:', uploadResult);
+          imageUrl = uploadResult.url;
+          console.log('✅ Image uploaded, URL:', imageUrl);
+          console.log('🔍 URL length:', imageUrl.length);
+          console.log('🔍 URL starts with:', imageUrl.substring(0, 50));
+        } catch (uploadError) {
+          console.error('❌ Image upload failed:', uploadError);
+          alert('Failed to upload image: ' + (uploadError.response?.data?.error || uploadError.message));
+          return; // Stop if image upload fails
+        }
       }
       
       // Create hotel with Supabase image URL
@@ -109,7 +131,11 @@ const HostDashboard = () => {
         hotel_img: imageUrl
       };
       
+      console.log('🏨 Creating hotel with data:', hotelData);
+      
       const response = await hotelAPI.create(hotelData);
+      console.log('✅ Hotel created successfully:', response.data);
+      
       const newHotelId = response.data.hotel.hotelid;
       
       const viewRooms = window.confirm('Hotel added successfully! Would you like to manage rooms for this hotel now?');
@@ -134,8 +160,26 @@ const HostDashboard = () => {
         navigate(`/host/add-rooms?hotelId=${newHotelId}`);
       }
     } catch (error) {
-      console.error('Error adding hotel:', error);
-      alert('Failed to add hotel: ' + (error.response?.data?.error || error.message));
+      console.error('❌ Error adding hotel:', error);
+      console.error('Error response:', error.response);
+      console.error('Error details:', error.response?.data);
+      
+      const errorData = error.response?.data;
+      let errorMessage = errorData?.error || errorData?.details || error.message || 'Unknown error';
+      
+      // Check for specific error codes
+      if (errorData?.code === 'HOST_NOT_FOUND' || error.response?.status === 401) {
+        errorMessage = 'Your session has expired or your account needs to be refreshed. Please log out and log back in.';
+        
+        // Auto-redirect to login after showing error
+        setTimeout(() => {
+          localStorage.removeItem('token');
+          localStorage.removeItem('userRole');
+          window.location.href = '/login';
+        }, 3000);
+      }
+      
+      alert('Failed to add hotel: ' + errorMessage);
     }
   };
 
@@ -936,7 +980,10 @@ const HostDashboard = () => {
                                 borderRadius: '8px',
                                 border: '1px solid #ced4da'
                               }}
+                              onLoad={() => console.log('✅ Hotel image loaded:', hotel.hotel_img)}
                               onError={(e) => {
+                                console.error('❌ Hotel image failed to load:', hotel.hotel_img);
+                                console.error('Image element:', e.target);
                                 e.target.style.display = 'none';
                               }}
                             />

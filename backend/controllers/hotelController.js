@@ -149,12 +149,48 @@ exports.createHotel = async (req, res) => {
       amenities
     } = req.body;
 
+    console.log('🏨 Creating hotel for host:', hostId);
+    console.log('📝 Hotel data:', {
+      hotel_name,
+      hotel_address,
+      hotel_desc,
+      checkin_time,
+      checkout_time,
+      receptionist_number,
+      hotel_img: hotel_img ? `${hotel_img.substring(0, 50)}...` : 'No image',
+      amenities
+    });
+
+    // Validate required fields
+    if (!hotel_name || !hotel_address) {
+      console.error('❌ Validation failed: Missing required fields');
+      return res.status(400).json({ 
+        error: 'Hotel name and address are required',
+        details: 'Missing required fields'
+      });
+    }
+
+    // Verify host exists in database
+    const hostCheck = await client.query('SELECT * FROM Host WHERE HostID = $1', [hostId]);
+    if (hostCheck.rows.length === 0) {
+      console.error('❌ Host not found in database:', hostId);
+      return res.status(401).json({
+        error: 'Session expired or invalid',
+        details: 'Please log out and log back in. Your host account may have been removed or recreated.',
+        code: 'HOST_NOT_FOUND'
+      });
+    }
+
+    console.log('✅ Host verified:', hostId);
+
     await client.query('BEGIN');
 
     // Generate HotelID
     const hotelCountResult = await client.query('SELECT COUNT(*) as count FROM Hotel');
     const hotelCount = parseInt(hotelCountResult.rows[0].count) + 1;
     const hotelId = `AADHTEL${String(hotelCount).padStart(3, '0')}`;
+
+    console.log('🆔 Generated HotelID:', hotelId);
 
     const result = await client.query(
       `INSERT INTO Hotel (HotelID, HostID, Hotel_Name, Hotel_Address, Hotel_Description, Checkin_Time, 
@@ -163,6 +199,8 @@ exports.createHotel = async (req, res) => {
       [hotelId, hostId, hotel_name, hotel_address, hotel_desc, checkin_time, checkout_time, 
        receptionist_number, hotel_img]
     );
+
+    console.log('✅ Hotel inserted into database');
 
     // Insert amenities if provided
     if (amenities && amenities.length > 0) {
@@ -177,13 +215,17 @@ exports.createHotel = async (req, res) => {
 
     await client.query('COMMIT');
 
+    console.log('✅ Hotel created successfully:', hotelId);
+
     res.status(201).json({
       message: 'Hotel created successfully',
       hotel: result.rows[0]
     });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Error creating hotel:', error);
+    console.error('❌ Error creating hotel:', error);
+    console.error('Error code:', error.code);
+    console.error('Error detail:', error.detail);
     res.status(500).json({ error: 'Failed to create hotel', details: error.message });
   } finally {
     client.release();

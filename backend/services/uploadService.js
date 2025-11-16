@@ -45,15 +45,21 @@ const uploadImageToSupabase = async (file, folder = 'hotels') => {
       throw error;
     }
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    // Get public URL with proper path handling
+    const { data: publicUrlData } = supabase.storage
       .from(process.env.SUPABASE_BUCKET_NAME)
-      .getPublicUrl(fileName);
+      .getPublicUrl(data.path);
+
+    if (!publicUrlData || !publicUrlData.publicUrl) {
+      throw new Error('Failed to generate public URL');
+    }
+
+    console.log('📸 Generated public URL:', publicUrlData.publicUrl);
 
     return {
       success: true,
-      url: publicUrl,
-      path: fileName
+      url: publicUrlData.publicUrl,
+      path: data.path
     };
   } catch (error) {
     console.error('Error uploading image:', error);

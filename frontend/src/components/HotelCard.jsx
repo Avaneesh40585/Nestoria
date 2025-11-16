@@ -25,6 +25,8 @@ const HotelCard = ({ hotel, checkinDate, checkoutDate }) => {
 
   const handleImageError = (e) => {
     if (!imageError) {
+      console.error('❌ Image failed to load:', hotel.hotel_img);
+      console.error('Error details:', e);
       setImageError(true);
       e.target.src = 'https://via.placeholder.com/400x250?text=Hotel+Image';
     }
@@ -36,6 +38,13 @@ const HotelCard = ({ hotel, checkinDate, checkoutDate }) => {
     return parseFloat(rating).toFixed(1);
   };
 
+  // Debug: Log image URL
+  React.useEffect(() => {
+    if (hotel.hotel_img) {
+      console.log('🖼️ Hotel Image URL:', hotel.hotel_img);
+    }
+  }, [hotel.hotel_img]);
+
   return (
     <div className="hotel-card" onClick={handleClick}>
       <div className="hotel-image">
@@ -43,6 +52,7 @@ const HotelCard = ({ hotel, checkinDate, checkoutDate }) => {
           src={imageError ? 'https://via.placeholder.com/400x250?text=Hotel+Image' : (hotel.hotel_img || 'https://via.placeholder.com/400x250?text=Hotel+Image')} 
           alt={hotel.hotel_name || 'Hotel'} 
           onError={handleImageError}
+          onLoad={() => console.log('✅ Image loaded successfully:', hotel.hotel_img)}
         />
         <div className="hotel-rating">
           <FaStar className="star-icon" />
