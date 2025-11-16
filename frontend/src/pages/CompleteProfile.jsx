@@ -7,7 +7,7 @@ import { FaPhoneAlt, FaMapMarkerAlt } from 'react-icons/fa';
 const CompleteProfile = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   
   const userType = location.state?.userType || 'customer';
   const [loading, setLoading] = useState(false);

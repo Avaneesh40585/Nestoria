@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import SearchBar from '../components/SearchBar';
 import { FaHotel, FaShieldAlt, FaHeadset, FaStar } from 'react-icons/fa';

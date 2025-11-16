@@ -140,7 +140,7 @@ exports.loginCustomer = async (req, res) => {
     const { email, password } = req.body;
 
     const result = await pool.query(
-      'SELECT CustomerID, Full_name, Email, Password FROM Customer WHERE Email = $1',
+      'SELECT CustomerID, Full_Name, Email, Password FROM Customer WHERE Email = $1',
       [email]
     );
 
@@ -200,7 +200,7 @@ exports.googleAuthCustomer = async (req, res) => {
       return res.status(401).json({ error: 'Invalid Firebase token', details: verificationResult.error });
     }
 
-    const { email, name, picture, uid } = verificationResult.user;
+    const { email, name, picture } = verificationResult.user;
     console.log('✅ Token verified for user:', email);
     console.log('User name from Google:', name);
 
@@ -298,7 +298,7 @@ exports.googleAuthHost = async (req, res) => {
       return res.status(401).json({ error: 'Invalid Firebase token', details: verificationResult.error });
     }
 
-    const { email, name, picture, uid } = verificationResult.user;
+    const { email, name, picture } = verificationResult.user;
     console.log('✅ Token verified for user:', email);
     console.log('User name from Google:', name);
 
@@ -381,7 +381,7 @@ exports.loginHost = async (req, res) => {
     const { email, password } = req.body;
 
     const result = await pool.query(
-      'SELECT HostID, Full_name, Email, Password FROM Host WHERE Email = $1',
+      'SELECT HostID, Full_Name, Email, Password FROM Host WHERE Email = $1',
       [email]
     );
 

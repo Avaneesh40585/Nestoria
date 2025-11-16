@@ -162,8 +162,6 @@ exports.createHotel = async (req, res) => {
        receptionist_number, hotel_img]
     );
 
-    // const hotelId = result.rows[0].hotelid; // No longer needed since we generate it
-
     // Insert amenities if provided
     if (amenities && amenities.length > 0) {
       console.log('Creating hotel with amenities:', amenities);

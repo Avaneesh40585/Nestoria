@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { hostAPI, hotelAPI, roomAPI, bookingAPI } from '../services/api';
+import { hostAPI, hotelAPI, bookingAPI } from '../services/api';
 import { uploadHotelImage } from '../services/uploadAPI';
 import { FaHotel, FaBed, FaCalendarCheck, FaRupeeSign, FaPlus, FaEdit, FaTrash, FaSave, FaTimes } from 'react-icons/fa';
 
@@ -52,11 +52,7 @@ const HostDashboard = () => {
   const [editImageFile, setEditImageFile] = useState(null);
   const [editImagePreview, setEditImagePreview] = useState('');
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
       const [statsRes, hotelsRes, bookingsRes] = await Promise.all([
@@ -88,7 +84,11 @@ const HostDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   const handleAddHotel = async (e) => {
     e.preventDefault();

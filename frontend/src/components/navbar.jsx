@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { FaUser, FaSignOutAlt, FaHotel, FaBars, FaTimes, FaExclamationCircle } from 'react-icons/fa';
 
 const Navbar = () => {
-  const { user, logout, isAuthenticated, isHost, isCustomer } = useAuth();
+  const { logout, isAuthenticated, isHost, isCustomer } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);

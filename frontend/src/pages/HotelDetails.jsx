@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { hotelAPI } from '../services/api';
 import RoomCard from '../components/RoomCard';
@@ -12,6 +12,19 @@ const formatDisplayDate = (dateString) => {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
+};
+
+// Format description into paragraphs
+const formatDescription = (description) => {
+  if (!description || !description.trim()) return [];
+  
+  // Split by newlines or double spaces to create paragraphs
+  const paragraphs = description
+    .split(/\n\n|\n|\. (?=[A-Z])/)
+    .map(p => p.trim())
+    .filter(p => p.length > 0);
+  
+  return paragraphs;
 };
 
 const HotelDetails = () => {
@@ -87,41 +100,6 @@ const HotelDetails = () => {
     }));
   };
 
-  // Format description into paragraphs
-  const formatDescription = (description) => {
-    if (!description || !description.trim()) return [];
-    
-    // Split by newlines or double spaces to create paragraphs
-    const paragraphs = description
-      .split(/\n\n|\n|\. (?=[A-Z])/)
-      .map(p => p.trim())
-      .filter(p => p.length > 0);
-    
-    return paragraphs;
-  };
-
-  // Format reviews into structured data
-  const formatReviews = (reviewText) => {
-    if (!reviewText || !reviewText.trim()) return [];
-    
-    // Try to parse reviews if they're in a structured format
-    // Otherwise, treat as a single review
-    const reviews = [];
-    const lines = reviewText.split('\n').filter(line => line.trim());
-    
-    if (lines.length > 0) {
-      // Simple format: create review cards from the text
-      reviews.push({
-        id: 1,
-        author: 'Guest Review',
-        rating: hotel.overall_rating || 4.0,
-        date: 'Recent',
-        comment: reviewText.trim()
-      });
-    }
-    
-    return reviews;
-  };
   const getAmenityIcon = (amenityName) => {
     const name = amenityName.toLowerCase();
     
@@ -144,11 +122,7 @@ const HotelDetails = () => {
     return FaConciergeBell; // Default icon
   };
 
-  useEffect(() => {
-    fetchHotelDetails();
-  }, [id]);
-
-  const fetchHotelDetails = async () => {
+  const fetchHotelDetails = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -185,7 +159,11 @@ const HotelDetails = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchHotelDetails();
+  }, [fetchHotelDetails]);
 
   if (loading) {
     return (

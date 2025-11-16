@@ -37,7 +37,9 @@ export const uploadRoomImage = async (file) => {
   return response.data;
 };
 
-export default {
+const uploadAPI = {
   uploadHotelImage,
   uploadRoomImage
 };
+
+export default uploadAPI;

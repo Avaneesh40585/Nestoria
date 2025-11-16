@@ -38,6 +38,6 @@
   },
   "devDependencies": {
     "@surma/rollup-plugin-off-main-thread": "^2.2.3",
-    "react-scripts": "^0.0.0"
+    "react-scripts": "^5.0.1"
   }
 }

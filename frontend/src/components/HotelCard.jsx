@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaStar, FaMapMarkerAlt, FaRupeeSign } from 'react-icons/fa';
+import { FaStar, FaRupeeSign } from 'react-icons/fa';
 
 const HotelCard = ({ hotel, checkinDate, checkoutDate }) => {
   const navigate = useNavigate();

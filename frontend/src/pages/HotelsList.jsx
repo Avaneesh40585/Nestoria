@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { hotelAPI } from '../services/api';
 import HotelCard from '../components/HotelCard';
@@ -27,10 +27,6 @@ const HotelsList = () => {
   const checkinDate = searchParams.get('checkin');
   const checkoutDate = searchParams.get('checkout');
 
-  useEffect(() => {
-    fetchHotels();
-  }, [searchParams]);
-
   // Store searched location from URL params (but don't pre-fill the filter)
   useEffect(() => {
     const locationParam = searchParams.get('location');
@@ -51,7 +47,7 @@ const HotelsList = () => {
     }
   }, [initialLocationSet, hotels, searchedLocation]);
 
-  const fetchHotels = async () => {
+  const fetchHotels = useCallback(async () => {
     setLoading(true);
     try {
       const params = {
@@ -86,7 +82,11 @@ const HotelsList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]);
+
+  useEffect(() => {
+    fetchHotels();
+  }, [fetchHotels]);
 
   const applyFilters = () => {
     // Check if any filter is selected

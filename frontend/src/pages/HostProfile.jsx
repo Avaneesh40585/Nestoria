@@ -5,7 +5,7 @@ import { FaUser, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 import './HostProfile.css';
 
 const HostProfile = () => {
-  const { user } = useAuth();
+  const { } = useAuth();
   const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);

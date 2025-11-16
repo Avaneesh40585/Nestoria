@@ -1,5 +1,4 @@
 const pool = require('../config/database');
-const crypto = require('crypto');
 
 // Create booking
 exports.createBooking = async (req, res) => {
@@ -10,8 +9,7 @@ exports.createBooking = async (req, res) => {
       checkin_date,
       checkout_date,
       base_amount,
-      tax_amount,
-      final_amount
+      tax_amount
     } = req.body;
 
     // Check room availability (optimized query)

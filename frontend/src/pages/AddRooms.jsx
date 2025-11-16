@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { hotelAPI, roomAPI } from '../services/api';
 import { FaArrowLeft, FaPlus, FaTrash, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
@@ -40,9 +40,9 @@ const AddRooms = () => {
     }
     // Clear field errors on mount
     setFieldErrors({});
-  }, [hotelId]);
+  }, [hotelId, navigate, fetchHotelDetails]);
 
-  const fetchHotelDetails = async () => {
+  const fetchHotelDetails = useCallback(async () => {
     try {
       const response = await hotelAPI.getDetails(hotelId);
       setHotel(response.data.hotel);
@@ -72,21 +72,7 @@ const AddRooms = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const addRoomForm = () => {
-    setRooms([...rooms, {
-      room_number: '',
-      room_type: '',
-      room_desc: '',
-      cost_per_night: '',
-      position_view: '',
-      room_status: 'Available',
-      amenities: []
-    }]);
-    // Clear field errors when adding a new room
-    setFieldErrors({});
-  };
+  }, [hotelId, navigate]);
 
   // Validation functions
   const validateRoomNumber = (value) => {
@@ -136,15 +122,6 @@ const AddRooms = () => {
       return 'Please select a room status';
     }
     return '';
-  };
-
-  const removeRoomForm = (index) => {
-    if (rooms.length > 1) {
-      const updatedRooms = rooms.filter((_, i) => i !== index);
-      setRooms(updatedRooms);
-      // Clear field errors when removing a room
-      setFieldErrors({});
-    }
   };
 
   const handleRoomChange = (index, field, value) => {
