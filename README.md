@@ -2,16 +2,6 @@
 
 A full-stack hotel booking web application built with PostgreSQL, Node.js/Express, and React. Features dual authentication systems (Customers & Hosts), complete CRUD operations, Firebase & Supabase integration for file storage, and production-ready deployment configuration.
 
-## 🆕 Recent Updates
-
-- ✅ **Image Upload Optimization**: Automatic resizing to 1200×800px with 90% compression
-- ✅ **Supabase Integration**: Primary storage solution with service role key support
-- ✅ **Database Schema Updates**: TEXT columns for HotelImg and Room_img
-- ✅ **Inline Editing**: Edit hotels, rooms, and profiles without page navigation
-- ✅ **Enhanced Host Dashboard**: Tabbed interface with statistics and property management
-- ✅ **Form UX Improvements**: Auto-hide forms after save, button placement optimizations
-- ✅ **Windows Compatibility**: PowerShell-specific commands and troubleshooting
-- ✅ **Review System**: Dedicated tables for hotel and room reviews
 
 ## 🏗️ Project Structure
 
