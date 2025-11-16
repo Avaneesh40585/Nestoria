@@ -1,15 +1,13 @@
 # Nestoria Inc. - Hotel Booking Platform
 # Render.com Deployment Configuration
-# Last Updated: November 2024
+# Last Updated: November 2025
 
 services:
   # Backend API Service
   - type: web
     name: nestoria-backend
     runtime: node
-    env: node
     region: oregon
-    plan: free
     buildCommand: cd backend && npm install
     startCommand: cd backend && npm start
     healthCheckPath: /api/health
@@ -60,9 +58,6 @@ services:
   - type: web
     name: nestoria-frontend
     runtime: static
-    env: static
-    region: oregon
-    plan: free
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: ./frontend/build
     # Auto-deploy on push to main branch
@@ -102,6 +97,3 @@ databases:
     # 2. database/seed.sql - Populates sample data (optional)
     # 3. database/trigger.sql - Adds database triggers (optional)
     # 4. database/supabase.sql - Supabase-specific setup (if using Supabase)
-    # 
-    # Note: HotelImg and Room_img columns use TEXT type for large image URLs
-    # Database includes 10 tables with foreign key relationships and cascading deletes
