@@ -34,6 +34,26 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'Server is running', timestamp: new Date().toISOString() });
 });
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Nestoria API Server',
+    status: 'running',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      hotels: '/api/hotels',
+      rooms: '/api/rooms',
+      bookings: '/api/bookings',
+      customers: '/api/customers',
+      hosts: '/api/hosts',
+      reviews: '/api/reviews',
+      upload: '/api/upload'
+    }
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

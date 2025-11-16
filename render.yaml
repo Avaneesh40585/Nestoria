@@ -85,6 +85,25 @@ services:
         # Update this to match your actual backend URL
       - key: NODE_ENV
         value: production
+      # Firebase Configuration (REQUIRED for Google Auth)
+      - key: REACT_APP_FIREBASE_API_KEY
+        sync: false
+        # Add your Firebase API Key in Render dashboard
+      - key: REACT_APP_FIREBASE_AUTH_DOMAIN
+        sync: false
+        # Add your Firebase Auth Domain (e.g., your-project.firebaseapp.com)
+      - key: REACT_APP_FIREBASE_PROJECT_ID
+        sync: false
+        # Add your Firebase Project ID
+      - key: REACT_APP_FIREBASE_STORAGE_BUCKET
+        sync: false
+        # Add your Firebase Storage Bucket
+      - key: REACT_APP_FIREBASE_MESSAGING_SENDER_ID
+        sync: false
+        # Add your Firebase Messaging Sender ID
+      - key: REACT_APP_FIREBASE_APP_ID
+        sync: false
+        # Add your Firebase App ID
 
 # PostgreSQL Database
 databases:
