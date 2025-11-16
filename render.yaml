@@ -89,7 +89,6 @@ services:
 databases:
   - name: nestoria-db
     databaseName: nestoria
-    plan: free
     region: oregon
     # PostgreSQL version 14+
     # After database provisioning, run the following scripts in order:
