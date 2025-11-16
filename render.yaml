@@ -7,6 +7,7 @@ services:
   - type: web
     name: nestoria-backend
     runtime: node
+    plan: free
     region: oregon
     buildCommand: cd backend && npm install
     startCommand: cd backend && npm start
@@ -89,6 +90,7 @@ services:
 databases:
   - name: nestoria-db
     databaseName: nestoria
+    plan: free
     region: oregon
     # PostgreSQL version 14+
     # After database provisioning, run the following scripts in order:
