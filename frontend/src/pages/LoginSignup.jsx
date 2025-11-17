@@ -243,6 +243,7 @@ const LoginSignup = () => {
 
       console.log('✅ Google sign-in successful, user:', googleResult.user.email);
       console.log('🔐 Sending token to backend...');
+      console.log('Token length:', googleResult.token.length);
 
       // Send Firebase token to backend for verification and user creation
       let response;
@@ -262,14 +263,14 @@ const LoginSignup = () => {
 
       const responseData = response.data.data || response.data;
       login(responseData.token, responseData.user);
-      
+    
       console.log('✅ Google authentication successful!');
-      
+    
       // Check if user needs to complete profile (new user from Google)
       const needsProfileCompletion = !responseData.user.phone_number || 
-                                     responseData.user.phone_number === '' ||
-                                     responseData.user.phone_number === null;
-      
+                                   responseData.user.phone_number === '' ||
+                                   responseData.user.phone_number === null;
+    
       if (needsProfileCompletion) {
         console.log('📝 Redirecting to profile completion...');
         // Redirect to profile completion

@@ -5,8 +5,18 @@ require('dotenv').config();
 
 const app = express();
 
+// Configure CORS with allowed origin from environment variable
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+console.log('🔧 CORS Configuration:');
+console.log('   Origin:', corsOptions.origin);
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: '10mb' })); // Increased limit for base64 images
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 

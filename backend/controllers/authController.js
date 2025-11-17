@@ -182,7 +182,13 @@ exports.loginCustomer = async (req, res) => {
 // Google Authentication for Customer
 exports.googleAuthCustomer = async (req, res) => {
   try {
+    console.log('🔐 Google auth customer endpoint called');
     const { firebaseToken } = req.body;
+    
+    console.log('   Request body:', { 
+      hasToken: !!firebaseToken,
+      tokenLength: firebaseToken ? firebaseToken.length : 0
+    });
 
     if (!firebaseToken) {
       console.error('❌ No Firebase token provided');
@@ -191,6 +197,18 @@ exports.googleAuthCustomer = async (req, res) => {
 
     console.log('🔐 Google auth attempt - Customer');
     console.log('Token received (first 50 chars):', firebaseToken.substring(0, 50) + '...');
+    
+    // Check if Firebase is initialized
+    const { firebaseApp } = require('../config/firebase');
+    console.log('   Firebase App status:', firebaseApp ? 'Initialized' : 'Not Initialized');
+    
+    if (!firebaseApp) {
+      console.error('❌ Firebase Admin SDK not initialized');
+      return res.status(500).json({ 
+        error: 'Google authentication is not properly configured on the server',
+        details: 'Firebase Admin SDK not initialized' 
+      });
+    }
 
     // Verify Firebase token
     const verificationResult = await verifyFirebaseToken(firebaseToken);
@@ -280,7 +298,13 @@ exports.googleAuthCustomer = async (req, res) => {
 // Google Authentication for Host
 exports.googleAuthHost = async (req, res) => {
   try {
+    console.log('🔐 Google auth host endpoint called');
     const { firebaseToken } = req.body;
+    
+    console.log('   Request body:', { 
+      hasToken: !!firebaseToken,
+      tokenLength: firebaseToken ? firebaseToken.length : 0
+    });
 
     if (!firebaseToken) {
       console.error('❌ No Firebase token provided');
@@ -289,6 +313,18 @@ exports.googleAuthHost = async (req, res) => {
 
     console.log('🔐 Google auth attempt - Host');
     console.log('Token received (first 50 chars):', firebaseToken.substring(0, 50) + '...');
+    
+    // Check if Firebase is initialized
+    const { firebaseApp } = require('../config/firebase');
+    console.log('   Firebase App status:', firebaseApp ? 'Initialized' : 'Not Initialized');
+    
+    if (!firebaseApp) {
+      console.error('❌ Firebase Admin SDK not initialized');
+      return res.status(500).json({ 
+        error: 'Google authentication is not properly configured on the server',
+        details: 'Firebase Admin SDK not initialized' 
+      });
+    }
 
     // Verify Firebase token
     const verificationResult = await verifyFirebaseToken(firebaseToken);
