@@ -227,6 +227,22 @@
     align-items: flex-start;
   }
   
+  .host-profile-page .edit-btn,
+  .host-profile-page .edit-actions {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .host-profile-page .edit-actions {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  .host-profile-page .save-btn,
+  .host-profile-page .cancel-btn {
+    flex: 1;
+  }
+  
   .info-row {
     flex-direction: column;
     gap: 0.25rem;
@@ -244,5 +260,45 @@
   .form-row {
     flex-direction: column;
     gap: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .host-profile-page {
+    padding: 1.5rem 0;
+  }
+  
+  .host-profile-page .container {
+    padding: 0 0.75rem;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .profile-card {
+    max-width: 100%;
+  }
+  
+  .card-header {
+    padding: 1rem;
+  }
+  
+  .card-header h2 {
+    font-size: 1.15rem;
+  }
+  
+  .profile-info {
+    padding: 1rem;
+  }
+  
+  .info-row {
+    padding: 0.5rem 0;
+  }
+  
+  .info-row strong,
+  .info-row span {
+    font-size: 0.9rem;
   }
 }
