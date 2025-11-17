@@ -1,7 +1,3 @@
-# Nestoria Inc. - Hotel Booking Platform
-# Render.com Deployment Configuration
-# Last Updated: November 2025
-
 services:
   # Backend API Service
   - type: web
@@ -54,6 +50,13 @@ services:
       - key: CORS_ORIGIN
         value: https://nestoria-frontend.onrender.com
         # Update this to match your actual frontend URL
+      # Firebase Configuration (REQUIRED for Google Auth)
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
 
   # Frontend Static Site Service
   - type: web
