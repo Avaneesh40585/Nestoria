@@ -161,14 +161,6 @@ const HostProfile = () => {
                     rows="3"
                   />
                 </div>
-                <div className="form-group">
-                  <label>Identity Number</label>
-                  <input
-                    type="text"
-                    value={profile?.Identity_No || profile?.identity_no || ''}
-                    disabled
-                  />
-                </div>
               </>
             ) : (
               <>
@@ -195,10 +187,6 @@ const HostProfile = () => {
                 <div className="info-row">
                   <strong>Address:</strong>
                   <span>{profile?.Address || profile?.address || 'N/A'}</span>
-                </div>
-                <div className="info-row">
-                  <strong>Identity Number:</strong>
-                  <span>{profile?.Identity_No || profile?.identity_no || 'N/A'}</span>
                 </div>
               </>
             )}

@@ -21,8 +21,7 @@ const LoginSignup = () => {
     phone_number: '',
     gender: '',
     age: '',
-    address: '',
-    identity_no: ''
+    address: ''
   });
 
   // Validation functions
@@ -75,14 +74,6 @@ const LoginSignup = () => {
     return '';
   };
 
-  const validateIdentity = (identity) => {
-    if (!identity.trim()) return 'Identity number is required';
-    const cleaned = identity.trim().replace(/\s/g, '');
-    if (cleaned.length !== 12) return 'Identity number must be exactly 12 digits';
-    if (!/^\d{12}$/.test(cleaned)) return 'Identity number must contain only digits';
-    return '';
-  };
-
   const validateGender = (gender) => {
     if (!gender) return 'Please select your gender';
     if (!['Male', 'Female', 'Other'].includes(gender)) return 'Invalid gender selection';
@@ -103,8 +94,6 @@ const LoginSignup = () => {
         return validateAge(value);
       case 'address':
         return validateAddress(value);
-      case 'identity_no':
-        return validateIdentity(value);
       case 'gender':
         return validateGender(value);
       default:
@@ -140,7 +129,7 @@ const LoginSignup = () => {
     if (isLogin) return true; // For login, we don't need all fields
     
     // Check if all required fields are filled
-    const requiredFields = ['full_name', 'email', 'password', 'phone_number', 'gender', 'age', 'address', 'identity_no'];
+    const requiredFields = ['full_name', 'email', 'password', 'phone_number', 'gender', 'age', 'address'];
     const allFieldsFilled = requiredFields.every(field => formData[field] && formData[field].toString().trim() !== '');
     
     if (!allFieldsFilled) return false;
@@ -198,8 +187,7 @@ const LoginSignup = () => {
           email: formData.email.trim().toLowerCase(),
           phone_number: formData.phone_number.trim(),
           age: parseInt(formData.age),
-          address: formData.address.trim(),
-          identity_no: formData.identity_no.trim().replace(/\s/g, '')
+          address: formData.address.trim()
         };
         
         if (userType === 'customer') {
@@ -402,22 +390,6 @@ const LoginSignup = () => {
                     className={fieldErrors.address ? 'input-error' : ''}
                   />
                   {fieldErrors.address && <span className="field-error">{fieldErrors.address}</span>}
-                </div>
-
-                <div className="form-group">
-                  <input
-                    type="text"
-                    name="identity_no"
-                    placeholder="Identity Number (12 digits - Aadhaar/PAN)"
-                    value={formData.identity_no}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    required
-                    maxLength="12"
-                    pattern="\d{12}"
-                    className={fieldErrors.identity_no ? 'input-error' : ''}
-                  />
-                  {fieldErrors.identity_no && <span className="field-error">{fieldErrors.identity_no}</span>}
                 </div>
               </>
             )}

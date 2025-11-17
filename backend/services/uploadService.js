@@ -27,8 +27,15 @@ const uploadImageToSupabase = async (file, folder = 'hotels') => {
   try {
     // Check if Supabase is configured
     if (!supabase) {
-      throw new Error('Supabase is not configured. Please set SUPABASE_URL and SUPABASE_ANON_KEY in .env file');
+      console.error('❌ Supabase not configured');
+      console.error('❌ SUPABASE_URL:', process.env.SUPABASE_URL ? 'Set' : 'Missing');
+      console.error('❌ SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'Set' : 'Missing');
+      console.error('❌ SUPABASE_BUCKET_NAME:', process.env.SUPABASE_BUCKET_NAME || 'Missing');
+      throw new Error('Supabase is not configured. Please set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_BUCKET_NAME in environment variables');
     }
+
+    console.log('📎 Bucket name:', process.env.SUPABASE_BUCKET_NAME);
+    console.log('📎 File details:', { name: file.originalname, size: file.size, type: file.mimetype });
 
     const fileExt = path.extname(file.originalname);
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}${fileExt}`;
@@ -41,7 +48,9 @@ const uploadImageToSupabase = async (file, folder = 'hotels') => {
       });
 
     if (error) {
-      console.error('Supabase upload error:', error);
+      console.error('❌ Supabase upload error:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error details:', JSON.stringify(error, null, 2));
       throw error;
     }
 

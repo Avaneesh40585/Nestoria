@@ -120,7 +120,13 @@ const HostDashboard = () => {
           console.log('🔍 URL starts with:', imageUrl.substring(0, 50));
         } catch (uploadError) {
           console.error('❌ Image upload failed:', uploadError);
-          alert('Failed to upload image: ' + (uploadError.response?.data?.error || uploadError.message));
+          console.error('❌ Full error details:', uploadError.response?.data);
+          
+          const errorMsg = uploadError.response?.data?.error || uploadError.message || 'Unknown error';
+          const errorDetails = uploadError.response?.data?.details || '';
+          const fullErrorMsg = errorDetails ? `${errorMsg}\n\nDetails: ${errorDetails}` : errorMsg;
+          
+          alert('Failed to upload image:\n' + fullErrorMsg + '\n\nPlease check:\n1. Supabase credentials are set in Render backend\n2. Bucket exists and is public\n3. Backend logs for more details');
           return; // Stop if image upload fails
         }
       }
@@ -629,7 +635,7 @@ const HostDashboard = () => {
                       )}
                     </div>
                     <div className="form-group">
-                      <label>Contact Number *</label>
+                      <label>Receptionist Number *</label>
                       <input
                         type="tel"
                         value={hotelForm.contact_receptionist}
@@ -833,7 +839,7 @@ const HostDashboard = () => {
                             />
                           </div>
                           <div className="form-group">
-                            <label>Contact Number</label>
+                            <label>Receptionist Number</label>
                             <input
                               type="tel"
                               value={editForm.contact_receptionist || ''}
