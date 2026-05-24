@@ -6,6 +6,7 @@ import HotelCard from '../components/HotelCard.jsx';
 import SearchBar from '../components/SearchBar.jsx';
 import Icon from '../components/Icon.jsx';
 import { hotelsAPI } from '../lib/api.js';
+import { useSavedHotels } from '../hooks/useSavedHotels.js';
 
 const AMENITY_OPTIONS = [
   { key: 'wifi', label: 'Fibre Wi-Fi' },
@@ -24,7 +25,7 @@ export default function HotelsScreen() {
     minPrice: 0, maxPrice: 30000, minRating: 0, regions: [], amenities: [],
   });
   const [sort, setSort] = useState('score');
-  const [saved, setSaved] = useState(new Set());
+  const { isSaved, toggle: toggleSave } = useSavedHotels();
   const [showSearch, setShowSearch] = useState(false);
 
   const apiParams = {
@@ -61,12 +62,6 @@ export default function HotelsScreen() {
   const toggleSet = (key, val) => setFilters((f) => {
     const arr = f[key].includes(val) ? f[key].filter((x) => x !== val) : [...f[key], val];
     return { ...f, [key]: arr };
-  });
-
-  const toggleSave = (id) => setSaved((s) => {
-    const next = new Set(s);
-    next.has(id) ? next.delete(id) : next.add(id);
-    return next;
   });
 
   const onSearch = (q) => {
@@ -184,7 +179,7 @@ export default function HotelsScreen() {
             <div className="hotel-grid">
               {filtered.map((h, i) => (
                 <div key={h.id} className="fade-up" style={{ animationDelay: `${i * 0.04}s` }}>
-                  <HotelCard hotel={h} saved={saved.has(h.id)} onSave={() => toggleSave(h.id)} />
+                  <HotelCard hotel={h} saved={isSaved(h.id)} onSave={() => toggleSave(h.id)} />
                 </div>
               ))}
             </div>

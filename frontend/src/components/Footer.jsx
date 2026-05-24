@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="container-wide">
-        <div className="footer-grid">
+        <div className="footer-grid" style={{ gridTemplateColumns: '1.5fr 1fr 1fr 1fr 1fr' }}>
           <div className="footer-brand">
             <span className="logo-mark">Nestoria<span className="logo-dot" /></span>
             <p>A curated collection of stays for travellers who notice the details.</p>
@@ -14,16 +14,22 @@ export default function Footer() {
             <Link to="/hotels">Destinations</Link>
             <Link to="/hotels?sort=score">Featured stays</Link>
             <Link to="/hotels?sort=rating">Editor's picks</Link>
+            <Link to="/journal">Journal</Link>
           </div>
           <div className="footer-col">
             <h4>Company</h4>
-            <Link to="/">About</Link>
-            <Link to="/login">Become a host</Link>
+            <Link to="/about">About</Link>
+            <Link to="/become-host">Become a host</Link>
           </div>
           <div className="footer-col">
             <h4>Support</h4>
-            <Link to="/">Help centre</Link>
-            <Link to="/">Contact</Link>
+            <Link to="/help">Help centre</Link>
+            <Link to="/contact">Contact</Link>
+          </div>
+          <div className="footer-col">
+            <h4>Legal</h4>
+            <Link to="/legal">Terms</Link>
+            <Link to="/legal?tab=privacy">Privacy</Link>
           </div>
         </div>
         <div className="footer-bottom">

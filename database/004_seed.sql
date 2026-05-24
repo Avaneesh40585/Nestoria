@@ -7,7 +7,7 @@
 
 -- A single bcrypt hash of "password123" (cost 10) reused across seed accounts.
 -- Generated with: bcrypt.hashSync('password123', 10)
--- $2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy
+-- $2b$10$R/BokQK3A3VqA6amtJlYUepO5dIf4x9e8ZHYZc9UOmiRXZSifX5CK
 
 -- -------------------------------------------------------------
 -- Amenities (matches design AMENITY_META)
@@ -28,9 +28,9 @@ INSERT INTO amenities (key, label, icon) VALUES
 -- Hosts (3 hosts owning the 8 hotels)
 -- -------------------------------------------------------------
 INSERT INTO hosts (email, password_hash, full_name, phone, business_name, kyc_verified, superhost, profile_image_url) VALUES
-    ('vikram@marigold.in',  '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Vikram Singh',   '+919812345001', 'Marigold Hospitality',   TRUE, TRUE,  NULL),
-    ('priya@casapamparo.in','$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Priya Fernandes','+919812345002', 'Pamparo Collective',     TRUE, FALSE, NULL),
-    ('arjun@cardamom.in',   '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Arjun Bopanna', '+919812345003', 'Western Ghats Hospitality',TRUE,TRUE, NULL);
+    ('vikram@marigold.in',  '$2b$10$R/BokQK3A3VqA6amtJlYUepO5dIf4x9e8ZHYZc9UOmiRXZSifX5CK', 'Vikram Singh',   '+919812345001', 'Marigold Hospitality',   TRUE, TRUE,  NULL),
+    ('priya@casapamparo.in','$2b$10$R/BokQK3A3VqA6amtJlYUepO5dIf4x9e8ZHYZc9UOmiRXZSifX5CK', 'Priya Fernandes','+919812345002', 'Pamparo Collective',     TRUE, FALSE, NULL),
+    ('arjun@cardamom.in',   '$2b$10$R/BokQK3A3VqA6amtJlYUepO5dIf4x9e8ZHYZc9UOmiRXZSifX5CK', 'Arjun Bopanna', '+919812345003', 'Western Ghats Hospitality',TRUE,TRUE, NULL);
 
 -- -------------------------------------------------------------
 -- Hotels — mirror design's HOTELS array
@@ -146,7 +146,7 @@ WHERE r.type ILIKE '%suite%';
 INSERT INTO customers (email, password_hash, full_name, phone)
 SELECT
     'customer' || i || '@nestoria.dev',
-    '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+    '$2b$10$R/BokQK3A3VqA6amtJlYUepO5dIf4x9e8ZHYZc9UOmiRXZSifX5CK',
     (ARRAY['Anaya Mehra','James Whitford','Riya Bhandari','Marcus Lee','Priya Iyer',
            'Ravi Krishnan','Kavita Sharma','David Choi','Aisha Khan','Rohan Kapoor',
            'Maya Subramanian','Liam O''Connor','Sneha Reddy','Adrian Costa','Tara Joshi',

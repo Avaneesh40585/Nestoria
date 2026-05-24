@@ -7,6 +7,7 @@ import Icon from '../components/Icon.jsx';
 import Stepper from '../components/Stepper.jsx';
 import { hotelsAPI } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useSavedHotels } from '../hooks/useSavedHotels.js';
 
 const HUES = ['warm', 'forest', 'ocean', 'dusk'];
 
@@ -23,6 +24,24 @@ export default function DetailScreen() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isSaved, toggle: toggleSave } = useSavedHotels();
+  const [shareLabel, setShareLabel] = useState('Share');
+
+  const share = async (hotel) => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try { await navigator.share({ title: hotel.name, text: hotel.description?.slice(0, 140), url }); return; }
+      catch { /* user cancelled — fall through to copy */ }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareLabel('Link copied');
+      setTimeout(() => setShareLabel('Share'), 1800);
+    } catch {
+      setShareLabel('Copy failed');
+      setTimeout(() => setShareLabel('Share'), 1800);
+    }
+  };
 
   const today    = new Date();
   const inDate   = new Date(today.getTime() + 14 * 86400000).toISOString().slice(0, 10);
@@ -89,8 +108,18 @@ export default function DetailScreen() {
           </div>
         </div>
         <div className="row" style={{ gap: 8 }}>
-          <button className="btn btn-ghost btn-sm"><Icon name="heart" size={14} /> Save</button>
-          <button className="btn btn-ghost btn-sm"><Icon name="arrow-up-right" size={14} /> Share</button>
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => toggleSave(hotel.id)}
+            aria-pressed={isSaved(hotel.id)}
+            style={isSaved(hotel.id) ? { borderColor: 'var(--accent)', color: 'var(--accent)' } : undefined}
+          >
+            <Icon name={isSaved(hotel.id) ? 'heart-fill' : 'heart'} size={14} />
+            {isSaved(hotel.id) ? 'Saved' : 'Save'}
+          </button>
+          <button className="btn btn-ghost btn-sm" onClick={() => share(hotel)}>
+            <Icon name="arrow-up-right" size={14} /> {shareLabel}
+          </button>
         </div>
       </div>
 

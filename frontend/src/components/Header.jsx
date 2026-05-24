@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext.jsx';
 const LINKS = [
   { to: '/',          label: 'Stays' },
   { to: '/hotels',    label: 'Explore' },
+  { to: '/journal',   label: 'Journal' },
+  { to: '/about',     label: 'About' },
 ];
 
 export default function Header({ theme, setTheme }) {

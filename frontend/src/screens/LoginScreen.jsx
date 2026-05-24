@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
@@ -105,15 +105,34 @@ export default function LoginScreen() {
             <hr className="divider" style={{ flex: 1 }} />
           </div>
 
-          <div className="mt-4" style={{ display: 'flex', justifyContent: 'center' }}>
+          <div className="mt-4">
             {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
-              <GoogleLogin
-                onSuccess={(cred) => googleMut.mutate({ role, credential: cred.credential })}
-                onError={() => setErr('Google sign-in was cancelled or failed.')}
-                theme="outline"
-                size="large"
-                text={mode === 'login' ? 'signin_with' : 'signup_with'}
-              />
+              <div style={{ position: 'relative', width: '100%' }}>
+                {/* Visible editorial button — clicks pass through to the overlay below */}
+                <button type="button" className="btn btn-ghost btn-lg" style={{ width: '100%', pointerEvents: 'none' }}>
+                  <Icon name="google" size={16} />
+                  {mode === 'login' ? 'Continue with Google' : 'Sign up with Google'}
+                </button>
+                {/* Real Google button rendered on top, fully transparent. Sized to fully cover our pill. */}
+                <div
+                  aria-hidden
+                  style={{
+                    position: 'absolute', inset: 0,
+                    opacity: 0,
+                    colorScheme: 'light',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <GoogleLogin
+                    onSuccess={(cred) => googleMut.mutate({ role, credential: cred.credential })}
+                    onError={() => setErr('Google sign-in was cancelled or failed.')}
+                    theme="outline"
+                    size="large"
+                    width="380"
+                    text={mode === 'login' ? 'signin_with' : 'signup_with'}
+                  />
+                </div>
+              </div>
             ) : (
               <button type="button" className="btn btn-ghost btn-lg" style={{ width: '100%' }} disabled>
                 <Icon name="google" size={16} /> Google sign-in (set VITE_GOOGLE_CLIENT_ID)
@@ -122,7 +141,7 @@ export default function LoginScreen() {
           </div>
 
           <p className="text-muted mt-6" style={{ fontSize: 12, textAlign: 'center' }}>
-            By continuing, you agree to our <a href="#" style={{ borderBottom: '1px solid var(--line-strong)' }}>Terms</a> and <a href="#" style={{ borderBottom: '1px solid var(--line-strong)' }}>Privacy Policy</a>.
+            By continuing, you agree to our <Link to="/legal" style={{ borderBottom: '1px solid var(--line-strong)' }}>Terms</Link> and <Link to="/legal?tab=privacy" style={{ borderBottom: '1px solid var(--line-strong)' }}>Privacy Policy</Link>.
           </p>
         </form>
       </div>

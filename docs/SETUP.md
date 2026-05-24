@@ -468,7 +468,7 @@ Without this section, the host's "Upload" hero-image button returns `503 Image u
    - **Create bucket**.
 4. **SQL Editor** (left sidebar) → **New query** → paste the entire contents of `database/003_storage.sql` from this repo → **Run**. This adds three RLS policies.
 5. **Project Settings → API**:
-   - **Project URL** → copy → paste into `backend/.env` as `SUPABASE_URL=`
+   - **Project URL** (in Project Overview) → copy → paste into `backend/.env` as `SUPABASE_URL=`
    - **`service_role` secret** (NOT `anon`!) → copy → paste into `backend/.env` as `SUPABASE_SERVICE_ROLE_KEY=`
 6. Restart the backend (`Ctrl+C` then `npm run dev`).
 

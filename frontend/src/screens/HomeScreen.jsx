@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 
 import SearchBar from '../components/SearchBar.jsx';
@@ -6,15 +6,14 @@ import HotelCard from '../components/HotelCard.jsx';
 import Photo from '../components/Photo.jsx';
 import Icon from '../components/Icon.jsx';
 import { hotelsAPI } from '../lib/api.js';
+import { JOURNAL_POSTS } from '../lib/content.js';
+import { useSavedHotels } from '../hooks/useSavedHotels.js';
 
-const JOURNAL = [
-  { title: 'Where the monsoon goes to write',     dest: 'Coorg',   read: '6 min',  hue: 'forest' },
-  { title: 'A field guide to the Konkan coast',   dest: 'Goa',     read: '11 min', hue: 'ocean'  },
-  { title: 'Seven rooms with a view in Rajasthan',dest: 'Udaipur', read: '8 min',  hue: 'sand'   },
-];
+const JOURNAL = JOURNAL_POSTS.slice(0, 3);
 
 export default function HomeScreen() {
   const navigate = useNavigate();
+  const { isSaved, toggle: toggleSave } = useSavedHotels();
 
   const destinationsQ = useQuery({
     queryKey: ['destinations'],
@@ -64,17 +63,29 @@ export default function HomeScreen() {
               </div>
             </div>
             <div className="fade-up d2">
-              <div className="hero-image-frame">
-                <Photo hue="dusk" />
-                <div className="hero-photo-meta">
-                  <div>
-                    <div className="serif" style={{ fontSize: 22, lineHeight: 1.1 }}>The Marigold House</div>
-                    <div className="mono mt-2">Udaipur · Rajasthan</div>
-                  </div>
-                  <div className="mono">№ 01 / 12</div>
-                </div>
-                <div className="photo-label">cover · 4:5</div>
-              </div>
+              {(() => {
+                const cover = featuredQ.data?.[0];
+                return (
+                  <Link
+                    to={cover ? `/hotel/${cover.slug}` : '/hotels'}
+                    className="hero-image-frame"
+                    style={{ display: 'block' }}
+                  >
+                    <Photo hue={cover?.hue || 'dusk'} src={cover?.hero_image_url} alt={cover?.name || ''} />
+                    <div className="hero-photo-meta">
+                      <div>
+                        <div className="serif" style={{ fontSize: 22, lineHeight: 1.1 }}>
+                          {cover?.name || 'The Marigold House'}
+                        </div>
+                        <div className="mono mt-2">
+                          {cover ? `${cover.city} · ${cover.region}` : 'Udaipur · Rajasthan'}
+                        </div>
+                      </div>
+                      <div className="mono">№ 01 / {featuredQ.data?.length || 8}</div>
+                    </div>
+                  </Link>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -137,7 +148,9 @@ export default function HomeScreen() {
           <div className="hotel-grid">
             {featuredQ.isLoading
               ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="hcard"><div className="hcard-img" /><div className="hcard-body"><div className="hcard-name" style={{opacity:.4}}>Loading…</div></div></div>)
-              : (featuredQ.data || []).map((h) => <HotelCard key={h.id} hotel={h} />)}
+              : (featuredQ.data || []).map((h) => (
+                  <HotelCard key={h.id} hotel={h} saved={isSaved(h.id)} onSave={() => toggleSave(h.id)} />
+                ))}
           </div>
         </div>
       </section>
@@ -153,7 +166,7 @@ export default function HomeScreen() {
           </div>
           <div className="dests-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: '300px' }}>
             {JOURNAL.map((j) => (
-              <div key={j.title} className="dest-card">
+              <Link key={j.slug} to={`/journal/${j.slug}`} className="dest-card" style={{ cursor: 'pointer' }}>
                 <Photo hue={j.hue} />
                 <div className="dest-card-info">
                   <div style={{ maxWidth: '78%' }}>
@@ -162,7 +175,7 @@ export default function HomeScreen() {
                   </div>
                   <Icon name="arrow-up-right" size={20} />
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
