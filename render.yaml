@@ -1,0 +1,70 @@
+services:
+  # ---------------- Backend API ----------------
+  - type: web
+    name: nestoria-backend
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+
+      # Postgres (Render-managed)
+      - { key: DB_HOST,     fromDatabase: { name: nestoria-db, property: host } }
+      - { key: DB_PORT,     fromDatabase: { name: nestoria-db, property: port } }
+      - { key: DB_NAME,     fromDatabase: { name: nestoria-db, property: database } }
+      - { key: DB_USER,     fromDatabase: { name: nestoria-db, property: user } }
+      - { key: DB_PASSWORD, fromDatabase: { name: nestoria-db, property: password } }
+      - { key: DB_SSL,      value: "true" }
+
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+
+      # Supabase (image storage only) — set values in Render dashboard
+      - { key: SUPABASE_URL,                sync: false }
+      - { key: SUPABASE_SERVICE_ROLE_KEY,   sync: false }
+      - { key: SUPABASE_BUCKET_NAME,        value: hotel-images }
+
+      # Google OAuth — set the Client ID from console.cloud.google.com in the Render dashboard
+      - { key: GOOGLE_CLIENT_ID,            sync: false }
+
+      - key: CORS_ORIGIN
+        value: https://nestoria-frontend.onrender.com
+
+  # ---------------- Frontend (Vite SPA) ----------------
+  - type: web
+    name: nestoria-frontend
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/build
+    autoDeploy: true
+    routes:
+      - { type: rewrite, source: /*, destination: /index.html }
+    headers:
+      - { path: /*, name: X-Frame-Options,        value: DENY }
+      - { path: /*, name: X-Content-Type-Options, value: nosniff }
+      - { path: /*, name: Referrer-Policy,        value: strict-origin-when-cross-origin }
+    envVars:
+      - key: VITE_API_URL
+        value: https://nestoria-backend.onrender.com/api
+      - { key: VITE_GOOGLE_CLIENT_ID, sync: false }
+
+# ---------------- PostgreSQL ----------------
+databases:
+  - name: nestoria-db
+    databaseName: nestoria
+    plan: free
+    region: oregon
+    # After provisioning, run these in order from the Render PSQL shell:
+    #   \i database/001_schema.sql
+    #   \i database/002_triggers.sql
+    #   \i database/004_seed.sql
+    # database/003_storage.sql runs in the Supabase SQL editor, not here.
