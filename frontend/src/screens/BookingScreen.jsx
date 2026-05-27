@@ -16,7 +16,7 @@ function nightsBetween(a, b) {
 export default function BookingScreen() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const roomId  = Number(params.get('room'));
   const slug    = params.get('hotel');
@@ -43,6 +43,16 @@ export default function BookingScreen() {
     mutationFn: () => bookingsAPI.create({ room_id: roomId, checkin_date: checkin, checkout_date: checkout, guests: guestsQ }),
     onSuccess: (data) => { setBookingId(data.booking.id); setStep(2); },
   });
+
+  if (user?.role === 'host') {
+    return (
+      <div className="container" style={{ padding: '120px 0', textAlign: 'center', maxWidth: 720 }}>
+        <h2 className="h-2">Hosts can't book stays.</h2>
+        <p className="text-muted mt-3">Bookings are made from a customer account. Sign out and sign in (or sign up) as a traveller to continue.</p>
+        <button className="btn btn-primary mt-6" onClick={() => { logout(); navigate('/login'); }}>Sign out</button>
+      </div>
+    );
+  }
 
   if (!roomId || !checkin || !checkout) {
     return (

@@ -44,7 +44,7 @@ export default function BecomeHostScreen() {
             </div>
             <div className="fade-up d2">
               <div className="hero-image-frame">
-                <Photo hue="forest" />
+                <Photo hue="forest" src="https://twsdesejcimvmrbopdwj.supabase.co/storage/v1/object/public/hotel-images/hotels/house-of-cardamom/hero.jpg" alt="House of Cardamom" />
                 <div className="hero-photo-meta">
                   <div>
                     <div className="serif" style={{ fontSize: 22, lineHeight: 1.1 }}>House of Cardamom</div>
@@ -52,7 +52,6 @@ export default function BecomeHostScreen() {
                   </div>
                   <div className="mono">est. 1934</div>
                 </div>
-                <div className="photo-label">cover · host</div>
               </div>
             </div>
           </div>

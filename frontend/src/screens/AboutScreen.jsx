@@ -20,11 +20,12 @@ const VALUES = [
   },
 ];
 
-const TEAM = [
-  { name: 'Anaya Mehra',   role: 'Editor at large',     bio: 'Spent a decade writing for travel magazines before deciding the bookings should match the writing.' },
-  { name: 'Marcus Lee',    role: 'Engineering',         bio: 'Built the platform from a beach house in Mandrem. The wifi was the hardest part.' },
-  { name: 'Riya Bhandari', role: 'Host relationships',  bio: 'Knows every host by first name and most of their dogs by sight.' },
-];
+const BUILDER = {
+  name: 'Avaneesh',
+  role: 'Builder · Maintainer',
+  handle: 'Avaneesh40585',
+  bio: 'Designed and built Nestoria end-to-end — backend, frontend, database, infrastructure.',
+};
 
 export default function AboutScreen() {
   return (
@@ -52,7 +53,7 @@ export default function AboutScreen() {
             </div>
             <div className="fade-up d2">
               <div className="hero-image-frame">
-                <Photo hue="sand" />
+                <Photo hue="sand" src="https://twsdesejcimvmrbopdwj.supabase.co/storage/v1/object/public/hotel-images/hotels/marigold-house/hero.jpg" alt="The Marigold House" />
                 <div className="hero-photo-meta">
                   <div>
                     <div className="serif" style={{ fontSize: 22, lineHeight: 1.1 }}>The Marigold House</div>
@@ -60,7 +61,6 @@ export default function AboutScreen() {
                   </div>
                   <div className="mono">est. 2024</div>
                 </div>
-                <div className="photo-label">cover · about</div>
               </div>
             </div>
           </div>
@@ -74,7 +74,7 @@ export default function AboutScreen() {
             <div><div className="stat-num">8</div><div className="stat-label">Curated stays</div></div>
             <div><div className="stat-num">5</div><div className="stat-label">Destinations</div></div>
             <div><div className="stat-num">2024</div><div className="stat-label">Year founded</div></div>
-            <div><div className="stat-num">3</div><div className="stat-label">People</div></div>
+            <div><div className="stat-num">1</div><div className="stat-label">Person</div></div>
           </div>
         </div>
       </section>
@@ -125,19 +125,24 @@ export default function AboutScreen() {
         <div className="container-wide">
           <div className="section-head">
             <div className="section-title">
-              <div className="eyebrow mb-3">— Three people</div>
+              <div className="eyebrow mb-3">— One person</div>
               <h2 className="h-1">Who runs Nestoria.</h2>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }} className="kpi-grid">
-            {TEAM.map((p) => (
-              <div className="card-flat" key={p.name} style={{ padding: 28 }}>
-                <span className="avatar" style={{ width: 56, height: 56, fontSize: 22 }}>{p.name[0]}</span>
-                <h3 className="serif mt-4" style={{ fontSize: 22, lineHeight: 1.2 }}>{p.name}</h3>
-                <div className="eyebrow mt-2">{p.role}</div>
-                <p className="text-muted mt-3" style={{ fontSize: 14, lineHeight: 1.6 }}>{p.bio}</p>
-              </div>
-            ))}
+          <div className="card-flat" style={{ padding: 36, maxWidth: 420, margin: '0 auto', textAlign: 'left' }}>
+            <span className="avatar" style={{ width: 56, height: 56, fontSize: 22 }}>{BUILDER.name[0]}</span>
+            <h3 className="serif mt-4" style={{ fontSize: 24, lineHeight: 1.2 }}>{BUILDER.name}</h3>
+            <div className="eyebrow mt-2">{BUILDER.role}</div>
+            <p className="text-muted mt-3" style={{ fontSize: 14, lineHeight: 1.6 }}>{BUILDER.bio}</p>
+            <a
+              href={`https://github.com/${BUILDER.handle}`}
+              target="_blank"
+              rel="noreferrer"
+              className="eyebrow mt-4"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--accent)', borderBottom: '1px solid var(--accent)', paddingBottom: 2 }}
+            >
+              @{BUILDER.handle} <Icon name="arrow-up-right" size={12} />
+            </a>
           </div>
         </div>
       </section>

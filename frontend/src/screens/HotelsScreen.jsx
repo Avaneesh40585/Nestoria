@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 
 import HotelCard from '../components/HotelCard.jsx';
@@ -7,6 +7,7 @@ import SearchBar from '../components/SearchBar.jsx';
 import Icon from '../components/Icon.jsx';
 import { hotelsAPI } from '../lib/api.js';
 import { useSavedHotels } from '../hooks/useSavedHotels.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const AMENITY_OPTIONS = [
   { key: 'wifi', label: 'Fibre Wi-Fi' },
@@ -26,6 +27,15 @@ export default function HotelsScreen() {
   });
   const [sort, setSort] = useState('score');
   const { isSaved, toggle: toggleSave } = useSavedHotels();
+  const { user } = useAuth();
+  const routerLocation = useLocation();
+  const onSave = (id) => {
+    if (!user) {
+      navigate(`/login?next=${encodeURIComponent(routerLocation.pathname + routerLocation.search)}`);
+      return;
+    }
+    toggleSave(id);
+  };
   const [showSearch, setShowSearch] = useState(false);
 
   const apiParams = {
@@ -179,7 +189,7 @@ export default function HotelsScreen() {
             <div className="hotel-grid">
               {filtered.map((h, i) => (
                 <div key={h.id} className="fade-up" style={{ animationDelay: `${i * 0.04}s` }}>
-                  <HotelCard hotel={h} saved={isSaved(h.id)} onSave={() => toggleSave(h.id)} />
+                  <HotelCard hotel={h} saved={isSaved(h.id)} onSave={() => onSave(h.id)} />
                 </div>
               ))}
             </div>

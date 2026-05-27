@@ -43,7 +43,7 @@ export default function LoginScreen() {
   return (
     <div className="auth">
       <div className="auth-side">
-        <Photo hue="dusk" />
+        <Photo hue="dusk" src="https://twsdesejcimvmrbopdwj.supabase.co/storage/v1/object/public/hotel-images/hotels/aravali-retreat/hero.jpg" alt="Aravali Retreat" />
         <div className="auth-quote">
           <span className="eyebrow" style={{ color: 'white', opacity: 0.85 }}>— From the journal</span>
           <h2 className="h-2 mt-4" style={{ color: 'white' }}>"The best stays don't sell you anything. They just hand you a key and disappear."</h2>

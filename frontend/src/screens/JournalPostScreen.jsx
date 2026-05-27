@@ -42,7 +42,7 @@ export default function JournalPostScreen() {
     <article>
       {/* HERO BAND */}
       <div style={{ position: 'relative', aspectRatio: '21/9', maxHeight: 540, overflow: 'hidden', background: 'var(--bg-inset)' }}>
-        <Photo hue={post.hue} />
+        <Photo hue={post.hue} src={post.src} alt={post.title} />
         <div style={{
           position: 'absolute', inset: 0,
           background: 'linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.55) 100%)',
@@ -105,7 +105,7 @@ export default function JournalPostScreen() {
             {related.map((p) => (
               <Link key={p.slug} to={`/journal/${p.slug}`} className="hcard" style={{ cursor: 'pointer' }}>
                 <div className="hcard-img" style={{ aspectRatio: '4/3' }}>
-                  <Photo hue={p.hue} />
+                  <Photo hue={p.hue} src={p.src} alt={p.title} />
                 </div>
                 <div className="hcard-body">
                   <div className="dest-meta">{p.dest.toUpperCase()} · {p.read.toUpperCase()} READ</div>

@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 
 import SearchBar from '../components/SearchBar.jsx';
@@ -8,12 +8,22 @@ import Icon from '../components/Icon.jsx';
 import { hotelsAPI } from '../lib/api.js';
 import { JOURNAL_POSTS } from '../lib/content.js';
 import { useSavedHotels } from '../hooks/useSavedHotels.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const JOURNAL = JOURNAL_POSTS.slice(0, 3);
 
 export default function HomeScreen() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const { isSaved, toggle: toggleSave } = useSavedHotels();
+  const onSave = (id) => {
+    if (!user) {
+      navigate(`/login?next=${encodeURIComponent(location.pathname + location.search)}`);
+      return;
+    }
+    toggleSave(id);
+  };
 
   const destinationsQ = useQuery({
     queryKey: ['destinations'],
@@ -119,7 +129,7 @@ export default function HomeScreen() {
           <div className="dests-grid">
             {(destinationsQ.data || []).slice(0, 5).map((d) => (
               <div key={d.name} className="dest-card" onClick={() => navigate(`/hotels?location=${encodeURIComponent(d.name)}`)}>
-                <Photo hue={d.hue || 'sand'} />
+                <Photo hue={d.hue || 'sand'} src={d.hero_image_url} alt={d.name} />
                 <div className="dest-card-info">
                   <div>
                     <div className="dest-name">{d.name}</div>
@@ -149,7 +159,7 @@ export default function HomeScreen() {
             {featuredQ.isLoading
               ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="hcard"><div className="hcard-img" /><div className="hcard-body"><div className="hcard-name" style={{opacity:.4}}>Loading…</div></div></div>)
               : (featuredQ.data || []).map((h) => (
-                  <HotelCard key={h.id} hotel={h} saved={isSaved(h.id)} onSave={() => toggleSave(h.id)} />
+                  <HotelCard key={h.id} hotel={h} saved={isSaved(h.id)} onSave={() => onSave(h.id)} />
                 ))}
           </div>
         </div>
@@ -167,7 +177,7 @@ export default function HomeScreen() {
           <div className="dests-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: '300px' }}>
             {JOURNAL.map((j) => (
               <Link key={j.slug} to={`/journal/${j.slug}`} className="dest-card" style={{ cursor: 'pointer' }}>
-                <Photo hue={j.hue} />
+                <Photo hue={j.hue} src={j.src} alt={j.title} />
                 <div className="dest-card-info">
                   <div style={{ maxWidth: '78%' }}>
                     <div className="dest-meta mb-2">{j.dest.toUpperCase()} · {j.read.toUpperCase()} READ</div>
@@ -196,7 +206,7 @@ export default function HomeScreen() {
               <button className="btn btn-accent btn-lg" onClick={() => navigate('/login?role=host')}>
                 Apply to host <Icon name="arrow-right" size={14} />
               </button>
-              <button className="btn btn-ghost btn-lg">Read our standards</button>
+              <button className="btn btn-ghost btn-lg" onClick={() => navigate('/become-host')}>Read our standards</button>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -73,10 +73,16 @@ function BookingsTable({ bookings }) {
 
 export default function HostScreen({ tab: initialTab }) {
   const navigate = useNavigate();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const qc = useQueryClient();
   const { user, setUser } = useAuth();
   const [tab, setTab] = useState(initialTab || params.get('tab') || 'overview');
+
+  useEffect(() => {
+    const next = initialTab || params.get('tab') || 'overview';
+    if (next !== tab) setTab(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params, initialTab]);
 
   const propertiesQ = useQuery({ queryKey: ['host','properties'], queryFn: () => hostAPI.properties().then((d) => d.properties) });
   const statsQ      = useQuery({ queryKey: ['host','stats'],      queryFn: () => hostAPI.stats() });
@@ -135,7 +141,7 @@ export default function HostScreen({ tab: initialTab }) {
 
       <div className="tabs-bar">
         {[['overview','Overview'],['properties','Properties'],['bookings','Bookings'],['earnings','Earnings'],['profile','Profile']].map(([k,l]) => (
-          <button key={k} className={tab === k ? 'is-active' : ''} onClick={() => setTab(k)}>{l}</button>
+          <button key={k} className={tab === k ? 'is-active' : ''} onClick={() => { setTab(k); setParams({ tab: k }, { replace: true }); }}>{l}</button>
         ))}
       </div>
 

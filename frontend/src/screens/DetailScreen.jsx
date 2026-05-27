@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 
 import Photo from '../components/Photo.jsx';
@@ -23,9 +23,19 @@ function Rating({ value, size = 12 }) {
 export default function DetailScreen() {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const routerLocation = useLocation();
   const { user } = useAuth();
   const { isSaved, toggle: toggleSave } = useSavedHotels();
   const [shareLabel, setShareLabel] = useState('Share');
+  const [reserveError, setReserveError] = useState(null);
+
+  const onSave = (id) => {
+    if (!user) {
+      navigate(`/login?next=${encodeURIComponent(routerLocation.pathname + routerLocation.search)}`);
+      return;
+    }
+    toggleSave(id);
+  };
 
   const share = async (hotel) => {
     const url = window.location.href;
@@ -70,14 +80,20 @@ export default function DetailScreen() {
   const total    = subtotal + taxes;
 
   const reserve = (roomId = selectedRoomId || baseRoom?.id) => {
-    if (!user) { navigate(`/login?next=${encodeURIComponent('/booking?room=' + roomId)}`); return; }
+    if (user?.role === 'host') {
+      setReserveError("Hosts can't book stays. Sign out and use a customer account to make a reservation.");
+      return;
+    }
+    setReserveError(null);
     const params = new URLSearchParams();
     params.set('room',     roomId);
     params.set('hotel',    hotel.slug);
     params.set('checkin',  checkin);
     params.set('checkout', checkout);
     params.set('guests',   guests);
-    navigate(`/booking?${params.toString()}`);
+    const target = `/booking?${params.toString()}`;
+    if (!user) { navigate(`/login?next=${encodeURIComponent(target)}`); return; }
+    navigate(target);
   };
 
   const tabs = ['overview', 'amenities', 'rooms', 'reviews', 'location'];
@@ -110,7 +126,7 @@ export default function DetailScreen() {
         <div className="row" style={{ gap: 8 }}>
           <button
             className="btn btn-ghost btn-sm"
-            onClick={() => toggleSave(hotel.id)}
+            onClick={() => onSave(hotel.id)}
             aria-pressed={isSaved(hotel.id)}
             style={isSaved(hotel.id) ? { borderColor: 'var(--accent)', color: 'var(--accent)' } : undefined}
           >
@@ -308,7 +324,11 @@ export default function DetailScreen() {
             <button className="btn btn-accent btn-lg mt-4" style={{ width: '100%' }} onClick={() => reserve()}>
               Reserve <Icon name="arrow-right" size={14} />
             </button>
-            <p className="text-muted mt-3" style={{ fontSize: 12, textAlign: 'center' }}>You won't be charged yet.</p>
+            {reserveError ? (
+              <p style={{ color: 'var(--danger)', fontSize: 12, textAlign: 'center', marginTop: 12 }}>{reserveError}</p>
+            ) : (
+              <p className="text-muted mt-3" style={{ fontSize: 12, textAlign: 'center' }}>You won't be charged yet.</p>
+            )}
           </div>
         </aside>
       </div>

@@ -20,7 +20,7 @@ export default function JournalScreen() {
         display: 'block', position: 'relative', borderRadius: 18, overflow: 'hidden',
         aspectRatio: '21 / 9', marginBottom: 32, cursor: 'pointer', border: '1px solid var(--line)',
       }}>
-        <Photo hue={featured.hue} />
+        <Photo hue={featured.hue} src={featured.src} alt={featured.title} />
         <div className="dest-card-info" style={{ inset: 'auto 32px 32px 32px' }}>
           <div style={{ maxWidth: '70%' }}>
             <div className="dest-meta mb-2">{featured.dest.toUpperCase()} · {featured.read.toUpperCase()} READ · BY {featured.author.toUpperCase()}</div>
@@ -36,7 +36,7 @@ export default function JournalScreen() {
         {rest.map((p, i) => (
           <Link key={p.slug} to={`/journal/${p.slug}`} className="hcard fade-up" style={{ animationDelay: `${i * 0.05}s`, cursor: 'pointer' }}>
             <div className="hcard-img" style={{ aspectRatio: '4/3' }}>
-              <Photo hue={p.hue} />
+              <Photo hue={p.hue} src={p.src} alt={p.title} />
             </div>
             <div className="hcard-body">
               <div className="hcard-head">

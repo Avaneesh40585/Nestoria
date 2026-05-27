@@ -60,7 +60,8 @@ const search = asyncHandler(async (req, res) => {
 const destinations = asyncHandler(async (_req, res) => {
   const { rows } = await pool.query(`
     SELECT city AS name, region, COUNT(*) AS stays,
-           (ARRAY_AGG(hue))[1] AS hue
+           (ARRAY_AGG(hue))[1] AS hue,
+           (ARRAY_AGG(hero_image_url) FILTER (WHERE hero_image_url IS NOT NULL))[1] AS hero_image_url
       FROM hotels
      WHERE city IS NOT NULL
      GROUP BY city, region
