@@ -31,7 +31,7 @@ export default function ContactScreen() {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 48 }} className="list-shell">
+      <div className="contact-shell">
         {/* Info column */}
         <aside className="stack" style={{ '--gap': '16px', alignSelf: 'start' }}>
           <div className="card-flat" style={{ padding: 24 }}>
@@ -80,7 +80,7 @@ export default function ContactScreen() {
             </div>
           ) : (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className="form-row-2">
                 <div className="field">
                   <label className="field-label">Name</label>
                   <input className="input" placeholder="Your name" {...register('name')} />

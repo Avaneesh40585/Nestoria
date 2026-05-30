@@ -79,7 +79,7 @@ export default function BecomeHostScreen() {
               <h2 className="h-1">Four reasons our hosts stay with us.</h2>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }} className="kpi-grid">
+          <div className="grid-features-4">
             {WHY.map((w) => (
               <div key={w.title} className="card-flat" style={{ padding: 24 }}>
                 <span style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--bg-inset)', color: 'var(--ink-2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -102,7 +102,7 @@ export default function BecomeHostScreen() {
               <h2 className="h-1">Three steps. About six weeks.</h2>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }} className="kpi-grid">
+          <div className="grid-features-3">
             {STEPS.map((s) => (
               <div key={s.n} className="card-flat" style={{ padding: 32, position: 'relative' }}>
                 <div className="serif" style={{ fontSize: 64, lineHeight: 1, color: 'var(--accent)', opacity: 0.85 }}>0{s.n}</div>
@@ -134,7 +134,7 @@ export default function BecomeHostScreen() {
       {/* CTA */}
       <section className="section">
         <div className="container-wide">
-          <div className="card" style={{ padding: '64px 56px', display: 'grid', gridTemplateColumns: '1fr auto', gap: 32, alignItems: 'center' }}>
+          <div className="card cta-card">
             <div>
               <div className="eyebrow mb-3">— Ready when you are</div>
               <h2 className="h-1" style={{ maxWidth: 580 }}>List your property in about an hour.</h2>

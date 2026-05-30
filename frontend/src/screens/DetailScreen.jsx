@@ -165,7 +165,7 @@ export default function DetailScreen() {
               </section>
               <section className="mb-8">
                 <div className="eyebrow mb-4">— Quick facts</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24, padding: '20px 0', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+                <div className="facts-grid">
                   {[
                     ['Check-in',  String(hotel.checkin_time || '15:00').slice(0,5)],
                     ['Check-out', String(hotel.checkout_time || '11:00').slice(0,5)],
@@ -174,7 +174,7 @@ export default function DetailScreen() {
                   ].map(([k,v]) => (
                     <div key={k}>
                       <div className="eyebrow mb-2">{k}</div>
-                      <div className="serif" style={{ fontSize: 26 }}>{v}</div>
+                      <div className="serif">{v}</div>
                     </div>
                   ))}
                 </div>
@@ -263,15 +263,15 @@ export default function DetailScreen() {
           {activeTab === 'location' && (
             <section className="fade-up">
               <div className="eyebrow mb-4">— On the map</div>
-              <div style={{ borderRadius: 16, overflow: 'hidden', position: 'relative', background: 'var(--bg-inset)', border: '1px solid var(--line)' }}>
+              <div className="hotel-map-wrap">
                 {hotel.latitude != null && hotel.longitude != null ? (
-                  <HotelMap lat={hotel.latitude} lng={hotel.longitude} label={hotel.name} height={420} />
+                  <HotelMap lat={hotel.latitude} lng={hotel.longitude} label={hotel.name} height="100%" />
                 ) : (
-                  <div style={{ aspectRatio: '16/9', display: 'grid', placeItems: 'center', color: 'var(--ink-3)', fontSize: 13 }}>
+                  <div style={{ height: '100%', display: 'grid', placeItems: 'center', color: 'var(--ink-3)', fontSize: 13 }}>
                     Map coordinates not available for this property.
                   </div>
                 )}
-                <div style={{ position: 'absolute', left: 20, bottom: 20, padding: '10px 14px', background: 'var(--bg-elev)', border: '1px solid var(--line)', borderRadius: 12, fontSize: 13, pointerEvents: 'none', zIndex: 500 }}>
+                <div className="hotel-map-label">
                   <div style={{ fontWeight: 500 }}>{hotel.name}</div>
                   <div className="text-muted" style={{ fontSize: 12 }}>{hotel.city}, {hotel.region}</div>
                 </div>
@@ -337,6 +337,19 @@ export default function DetailScreen() {
             )}
           </div>
         </aside>
+      </div>
+
+      <div className="reserve-bar" role="region" aria-label="Reserve">
+        <div className="reserve-bar-price">
+          <span className="price-amount text-mono">
+            ₹{Number(baseRoom?.price_per_night || hotel.price_from || 0).toLocaleString('en-IN')}
+            <span className="text-muted" style={{ fontSize: 12, marginLeft: 4 }}>/ night</span>
+          </span>
+          <span className="text-muted">{nights} night{nights > 1 ? 's' : ''} · ₹{total.toLocaleString('en-IN')} total</span>
+        </div>
+        <button className="btn btn-accent" onClick={() => reserve()}>
+          Reserve <Icon name="arrow-right" size={14} />
+        </button>
       </div>
     </div>
   );

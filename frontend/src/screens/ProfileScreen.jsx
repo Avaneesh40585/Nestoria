@@ -126,10 +126,10 @@ export default function ProfileScreen() {
       )}
 
       {tab === 'profile' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 36, alignItems: 'start' }}>
-          <form className="card-flat" style={{ padding: 32 }} onSubmit={handleSubmit((d) => updateMut.mutate(d))}>
+        <div className="shell-aside-right">
+          <form className="card-flat" style={{ padding: 'var(--space-5)' }} onSubmit={handleSubmit((d) => updateMut.mutate(d))}>
             <h2 className="h-3 mb-4">Personal details</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="form-row-2">
               <div className="field">
                 <label className="field-label">Full name</label>
                 <input className="input" {...register('full_name')} />

@@ -171,7 +171,7 @@ export default function AddRoomsScreen() {
               <input className="input" placeholder="marigold-house" {...basicsForm.register('slug')} />
               {basicsForm.formState.errors.slug && <small style={{ color: 'var(--danger)' }}>{basicsForm.formState.errors.slug.message}</small>}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="form-row-2">
               <div className="field"><label className="field-label">Region (state)</label>
                 <input className="input" placeholder="Rajasthan" {...basicsForm.register('region')} />
                 {basicsForm.formState.errors.region && <small style={{ color: 'var(--danger)' }}>{basicsForm.formState.errors.region.message}</small>}
@@ -233,7 +233,7 @@ export default function AddRoomsScreen() {
                 lat={addressForm.watch('latitude')}
                 lng={addressForm.watch('longitude')}
                 interactive
-                height={360}
+                height="clamp(260px, 45vh, 380px)"
                 onChange={({ lat, lng }) => {
                   addressForm.setValue('latitude', lat, { shouldValidate: true });
                   addressForm.setValue('longitude', lng, { shouldValidate: true });
@@ -247,7 +247,7 @@ export default function AddRoomsScreen() {
             </div>
 
             <div className="eyebrow mb-3">— Amenities</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 24 }}>
+            <div className="amenities-3" style={{ marginBottom: 24 }}>
               {AMENITIES.map((a) => {
                 const watched = addressForm.watch('amenities') || [];
                 const on = watched.includes(a.key);
@@ -335,7 +335,7 @@ export default function AddRoomsScreen() {
               {editingIdx === 'new' && (
                 <form className="card-flat" style={{ padding: 16, background: 'var(--bg-inset)' }}
                       onSubmit={roomForm.handleSubmit(submitRoom)}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div className="form-row-2">
                     <div className="field"><label className="field-label">Room name</label>
                       <input className="input" placeholder="Heritage Suite — Lake View" {...roomForm.register('name')} />
                       {roomForm.formState.errors.name && <small style={{ color: 'var(--danger)' }}>{roomForm.formState.errors.name.message}</small>}
@@ -345,7 +345,7 @@ export default function AddRoomsScreen() {
                       {roomForm.formState.errors.type && <small style={{ color: 'var(--danger)' }}>{roomForm.formState.errors.type.message}</small>}
                     </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginTop: 12 }}>
+                  <div className="form-row-3" style={{ marginTop: 12 }}>
                     <div className="field"><label className="field-label">₹ / night</label>
                       <input className="input" type="number" {...roomForm.register('price_per_night')} />
                       {roomForm.formState.errors.price_per_night && <small style={{ color: 'var(--danger)' }}>{roomForm.formState.errors.price_per_night.message}</small>}

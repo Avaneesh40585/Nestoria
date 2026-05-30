@@ -32,7 +32,7 @@ export default function JournalScreen() {
       </Link>
 
       {/* Rest */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 28 }}>
+      <div className="hotel-grid">
         {rest.map((p, i) => (
           <Link key={p.slug} to={`/journal/${p.slug}`} className="hcard fade-up" style={{ animationDelay: `${i * 0.05}s`, cursor: 'pointer' }}>
             <div className="hcard-img" style={{ aspectRatio: '4/3' }}>

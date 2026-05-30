@@ -101,7 +101,7 @@ export default function JournalPostScreen() {
               <h2 className="h-2">Three more from the journal.</h2>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }} className="kpi-grid">
+          <div className="grid-features-3">
             {related.map((p) => (
               <Link key={p.slug} to={`/journal/${p.slug}`} className="hcard" style={{ cursor: 'pointer' }}>
                 <div className="hcard-img" style={{ aspectRatio: '4/3' }}>

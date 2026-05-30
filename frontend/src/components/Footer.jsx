@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="container-wide">
-        <div className="footer-grid" style={{ gridTemplateColumns: '1.5fr 1fr 1fr 1fr 1fr' }}>
+        <div className="footer-grid">
           <div className="footer-brand">
             <span className="logo-mark">Nestoria<span className="logo-dot" /></span>
             <p>A curated collection of stays for travellers who notice the details.</p>

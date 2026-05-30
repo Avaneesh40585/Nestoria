@@ -139,7 +139,7 @@ export default function HostScreen({ tab: initialTab }) {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }} className="kpi-grid">
+      <div className="kpi-grid" style={{ marginBottom: 24 }}>
         {KPI.map((k) => (
           <div className="card-flat" key={k.label} style={{ padding: 22 }}>
             <div className="row" style={{ justifyContent: 'space-between', marginBottom: 14 }}>
@@ -166,7 +166,7 @@ export default function HostScreen({ tab: initialTab }) {
       </div>
 
       {tab === 'overview' && (
-        <div className="fade-up" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 24 }}>
+        <div className="fade-up host-overview-grid">
           <div className="card-flat" style={{ padding: 28 }}>
             <div className="row" style={{ justifyContent: 'space-between', marginBottom: 24 }}>
               <div>
@@ -211,7 +211,7 @@ export default function HostScreen({ tab: initialTab }) {
       {tab === 'properties' && (
         <div className="fade-up stack" style={{ '--gap': '20px' }}>
           {properties.map((p) => (
-            <div key={p.id} className="card-flat" style={{ padding: 20, display: 'grid', gridTemplateColumns: '160px 1fr auto', gap: 20, alignItems: 'center' }}>
+            <div key={p.id} className="card-flat property-row">
               <div style={{ aspectRatio: '4/3', borderRadius: 12, overflow: 'hidden', position: 'relative' }}>
                 <Photo hue={p.hue} src={p.hero_image_url} />
               </div>
@@ -257,7 +257,7 @@ export default function HostScreen({ tab: initialTab }) {
 
       {tab === 'earnings' && (
         <div className="fade-up">
-          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 24, marginBottom: 24 }}>
+          <div className="host-overview-grid" style={{ marginBottom: 24 }}>
             <div className="card-flat" style={{ padding: 28 }}>
               <div className="eyebrow mb-2">— Earnings, year to date</div>
               <div className="serif" style={{ fontSize: 40 }}>
@@ -318,13 +318,13 @@ function HostProfileTab({ profile, onSaved }) {
   });
   if (!profile) return <p className="text-muted">Loading…</p>;
   return (
-    <div className="fade-up" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 36, alignItems: 'start' }}>
-      <form className="card-flat" style={{ padding: 32 }} onSubmit={handleSubmit((d) => updateMut.mutate(d))}>
+    <div className="fade-up shell-aside-right">
+      <form className="card-flat" style={{ padding: 'var(--space-5)' }} onSubmit={handleSubmit((d) => updateMut.mutate(d))}>
         <h2 className="h-3 mb-2">Business details</h2>
         <p className="text-muted mb-6" style={{ fontSize: 13 }}>
           Fields marked <span style={{ color: 'var(--danger)' }}>*</span> are required before you can list a property.
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div className="form-row-2">
           <div className="field">
             <label className="field-label">Legal name <span style={{ color: 'var(--danger)' }}>*</span></label>
             <input className="input" placeholder="Your name as on records" {...register('full_name')} />

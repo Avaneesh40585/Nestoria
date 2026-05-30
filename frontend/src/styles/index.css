@@ -38,6 +38,20 @@
   --shadow-md: 0 8px 24px -10px rgba(20, 18, 14, 0.12), 0 2px 6px rgba(20, 18, 14, 0.05);
   --shadow-lg: 0 30px 60px -30px rgba(20, 18, 14, 0.25), 0 10px 20px -10px rgba(20, 18, 14, 0.1);
   --ring: 0 0 0 3px color-mix(in oklab, var(--accent) 30%, transparent);
+
+  /* Fluid spacing — clamp-based; used by .section, .hero, gaps, paddings */
+  --space-1: clamp(4px,  0.5vw, 6px);
+  --space-2: clamp(8px,  1vw,   12px);
+  --space-3: clamp(12px, 1.5vw, 18px);
+  --space-4: clamp(16px, 2vw,   24px);
+  --space-5: clamp(20px, 2.5vw, 32px);
+  --space-6: clamp(28px, 4vw,   48px);
+  --space-7: clamp(40px, 6vw,   72px);
+  --space-8: clamp(48px, 7vw,   88px);
+
+  /* Sticky offset — shrinks on mobile because the header shrinks */
+  --sticky-top: 96px;
+  --header-height: 72px;
 }
 
 [data-theme="dark"] {
@@ -235,7 +249,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 500; letter-spacing: -0.02em; }
   border-bottom: 1px solid var(--line);
   transition: background-color .3s ease, border-color .3s ease;
 }
-.header-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+.header-inner { display: flex; align-items: center; justify-content: space-between; height: var(--header-height); gap: 8px; }
 .logo { display: flex; align-items: baseline; gap: 8px; }
 .logo-mark {
   font-family: 'Instrument Serif', Georgia, serif;
@@ -294,13 +308,13 @@ h1, h2, h3, h4 { margin: 0; font-weight: 500; letter-spacing: -0.02em; }
 /* ---------- Hero ---------- */
 .hero {
   position: relative;
-  padding: 64px 0 88px;
+  padding: var(--space-7) 0 var(--space-8);
   overflow: visible;
 }
 .hero-grid {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
-  gap: 48px;
+  gap: var(--space-6);
   align-items: center;
 }
 @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; } }
@@ -420,11 +434,11 @@ h1, h2, h3, h4 { margin: 0; font-weight: 500; letter-spacing: -0.02em; }
 .stat-label { font-size: 12px; color: var(--ink-3); margin-top: 8px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
 
 /* ---------- Section ---------- */
-.section { padding: 88px 0; }
+.section { padding: var(--space-8) 0; }
 .section-head {
   display: flex; justify-content: space-between; align-items: end;
-  margin-bottom: 36px;
-  gap: 24px;
+  margin-bottom: var(--space-5);
+  gap: var(--space-4);
   flex-wrap: wrap;
 }
 .section-title { max-width: 640px; }
@@ -591,12 +605,13 @@ h1, h2, h3, h4 { margin: 0; font-weight: 500; letter-spacing: -0.02em; }
 .list-shell {
   display: grid;
   grid-template-columns: 280px 1fr;
-  gap: 48px;
+  gap: var(--space-6);
 }
+@media (max-width: 1024px) { .list-shell { grid-template-columns: 240px 1fr; } }
 @media (max-width: 900px) { .list-shell { grid-template-columns: 1fr; } }
 .filters {
   position: sticky;
-  top: 96px;
+  top: var(--sticky-top);
   align-self: start;
   padding-right: 8px;
 }
@@ -641,13 +656,14 @@ h1, h2, h3, h4 { margin: 0; font-weight: 500; letter-spacing: -0.02em; }
 .detail-shell {
   display: grid;
   grid-template-columns: 1fr 380px;
-  gap: 48px;
-  margin-top: 48px;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
 }
+@media (max-width: 1024px) { .detail-shell { grid-template-columns: 1fr 320px; } }
 @media (max-width: 900px) { .detail-shell { grid-template-columns: 1fr; } }
 .book-card {
   position: sticky;
-  top: 96px;
+  top: var(--sticky-top);
   background: var(--bg-elev);
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -800,11 +816,13 @@ h1, h2, h3, h4 { margin: 0; font-weight: 500; letter-spacing: -0.02em; }
 .footer {
   background: var(--bg-contrast);
   color: var(--ink-on-contrast);
-  padding: 80px 0 32px;
-  margin-top: 120px;
+  padding: var(--space-7) 0 var(--space-5);
+  margin-top: var(--space-8);
 }
-.footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 36px; margin-bottom: 60px; }
-@media (max-width: 720px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+.footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr; gap: var(--space-5); margin-bottom: var(--space-6); }
+@media (max-width: 1024px) { .footer-grid { grid-template-columns: 1.4fr 1fr 1fr 1fr; } }
+@media (max-width: 768px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: var(--space-4); } }
+@media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr; gap: var(--space-3); } }
 .footer-col h4 { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.6; margin-bottom: 18px; font-weight: 400; }
 .footer-col a { display: block; padding: 6px 0; opacity: 0.85; font-size: 14px; transition: opacity .15s; }
 .footer-col a:hover { opacity: 1; }
@@ -968,6 +986,531 @@ h1, h2, h3, h4 { margin: 0; font-weight: 500; letter-spacing: -0.02em; }
 
 /* ---------- Focus visible ---------- */
 :focus-visible { outline: none; box-shadow: var(--ring); border-radius: 8px; }
+
+/* =========================================================
+   Responsive utilities — class families used across screens
+   to replace inline JSX gridTemplateColumns rules so they
+   can actually carry media queries.
+   ========================================================= */
+
+/* Generic responsive grids */
+.grid-stats-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-5); }
+@media (max-width: 900px) { .grid-stats-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .grid-stats-4 { grid-template-columns: 1fr; } }
+
+.grid-features-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-5); }
+@media (max-width: 900px) { .grid-features-3 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .grid-features-3 { grid-template-columns: 1fr; } }
+
+.grid-features-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-5); }
+@media (max-width: 1024px) { .grid-features-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .grid-features-4 { grid-template-columns: 1fr; } }
+
+.grid-split-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); }
+@media (max-width: 768px) { .grid-split-2 { grid-template-columns: 1fr; } }
+
+.grid-dates-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+@media (max-width: 380px) { .grid-dates-2 { grid-template-columns: 1fr; } }
+
+/* Hero/sidebar 2-col layouts (form + side panel) */
+.shell-aside-right {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: var(--space-6);
+  align-items: start;
+}
+@media (max-width: 1024px) { .shell-aside-right { grid-template-columns: 1fr 320px; } }
+@media (max-width: 900px)  { .shell-aside-right { grid-template-columns: 1fr; } }
+
+.shell-aside-left {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+@media (max-width: 1024px) { .shell-aside-left { grid-template-columns: 240px 1fr; gap: var(--space-4); } }
+@media (max-width: 768px)  { .shell-aside-left { grid-template-columns: 1fr; } }
+
+/* Hotel detail 4-col Quick facts */
+.facts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+@media (max-width: 768px) { .facts-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 380px) { .facts-grid { grid-template-columns: 1fr; } }
+.facts-grid .serif { font-size: clamp(20px, 3vw, 26px); }
+.facts-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+@media (max-width: 380px) { .facts-grid-2 { grid-template-columns: 1fr; } }
+.facts-grid-2 .serif { font-size: clamp(16px, 2.5vw, 18px); }
+
+/* Host KPI grid */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); }
+@media (max-width: 1024px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px)  { .kpi-grid { grid-template-columns: 1fr; } }
+
+/* Host overview — chart + bars row */
+.host-overview-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+@media (max-width: 900px) { .host-overview-grid { grid-template-columns: 1fr; } }
+
+/* Amenities checkbox grid */
+.amenities-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
+@media (max-width: 768px) { .amenities-3 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .amenities-3 { grid-template-columns: 1fr; } }
+
+/* Visibility helpers (tighter than mass display:none usage) */
+.show-mobile { display: none; }
+.hide-mobile { display: initial; }
+@media (max-width: 768px) {
+  .show-mobile { display: initial; }
+  .hide-mobile { display: none; }
+}
+.show-mobile-flex { display: none; }
+@media (max-width: 768px) { .show-mobile-flex { display: inline-flex; } }
+
+/* =========================================================
+   Header — mobile nav (hamburger + drawer)
+   ========================================================= */
+.nav-toggle {
+  display: none;
+  width: 44px; height: 44px;
+  align-items: center; justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-elev);
+  color: var(--ink);
+}
+.nav-toggle:hover { border-color: var(--ink); }
+@media (max-width: 768px) {
+  .nav-links { display: none !important; }
+  .nav-toggle { display: inline-flex; }
+}
+@media (max-width: 480px) {
+  .header-actions .btn-sm { padding: 8px 12px; font-size: 12px; }
+}
+@media (max-width: 640px) {
+  :root { --header-height: 56px; --sticky-top: 72px; }
+  .logo-mark { font-size: 24px; }
+}
+
+/* Mobile drawer (portal-mounted) */
+.mobile-backdrop {
+  position: fixed; inset: 0;
+  background: color-mix(in oklab, #0a0a0a 50%, transparent);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 240;
+  animation: fadeIn .2s ease both;
+}
+.mobile-drawer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: min(360px, 88vw);
+  background: var(--bg);
+  border-left: 1px solid var(--line);
+  box-shadow: var(--shadow-lg);
+  z-index: 250;
+  display: flex; flex-direction: column;
+  padding: 16px 20px 24px;
+  animation: slideInRight .25s cubic-bezier(.2,.7,.3,1) both;
+  overscroll-behavior: contain;
+}
+.mobile-drawer-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 0 16px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
+}
+.mobile-drawer-close {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  color: var(--ink);
+}
+.mobile-drawer nav { display: flex; flex-direction: column; gap: 4px; }
+.mobile-drawer nav a {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 12px;
+  font-size: 16px;
+  color: var(--ink);
+  border-radius: 12px;
+  min-height: 44px;
+  transition: background-color .12s ease;
+}
+.mobile-drawer nav a:hover, .mobile-drawer nav a:focus-visible { background: var(--bg-inset); }
+.mobile-drawer nav a.is-active { color: var(--accent); background: var(--bg-inset); }
+.mobile-drawer-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.mobile-drawer-footer .btn { width: 100%; min-height: 44px; }
+.body-locked { overflow: hidden; }
+@keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* =========================================================
+   Hotels page — filters drawer (mobile)
+   ========================================================= */
+.hotels-toolbar {
+  display: none;
+  position: sticky;
+  top: var(--sticky-top);
+  z-index: 30;
+  background: color-mix(in oklab, var(--bg) 92%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 8px 0;
+  margin-bottom: 16px;
+  gap: 8px;
+  border-bottom: 1px solid var(--line);
+}
+@media (max-width: 900px) { .hotels-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; } }
+.filter-count-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent); color: var(--accent-ink);
+  font-size: 11px; font-weight: 500;
+  margin-left: 6px;
+}
+.filters-as-drawer {
+  position: fixed;
+  inset: auto 0 0 0;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  border-radius: 18px 18px 0 0;
+  box-shadow: var(--shadow-lg);
+  z-index: 250;
+  max-height: 88vh;
+  display: flex; flex-direction: column;
+  padding: 12px 20px 16px;
+  animation: slideInBottom .28s cubic-bezier(.2,.7,.3,1) both;
+}
+.filters-as-drawer-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 0 12px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 8px;
+}
+.filters-as-drawer-handle {
+  width: 36px; height: 4px;
+  background: var(--line-strong); border-radius: 999px;
+  margin: 4px auto 12px;
+}
+.filters-as-drawer-body { flex: 1; overflow-y: auto; padding-right: 4px; }
+.filters-as-drawer-foot {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  margin-top: 8px;
+}
+.filters-as-drawer-foot .btn { min-height: 44px; }
+@keyframes slideInBottom { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+/* On mobile, the inline aside.filters becomes hidden (the drawer takes over). */
+@media (max-width: 900px) {
+  .list-shell > aside.filters { display: none; }
+}
+
+/* =========================================================
+   Detail / Booking — mobile sticky reserve bar
+   ========================================================= */
+.reserve-bar {
+  display: none;
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 60;
+  background: var(--bg-elev);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -8px 30px -12px rgba(0,0,0,0.18);
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  align-items: center; justify-content: space-between; gap: 12px;
+}
+@media (max-width: 900px) { .reserve-bar { display: flex; } }
+.reserve-bar-price { display: flex; flex-direction: column; }
+.reserve-bar-price .price-amount { font-size: 20px; }
+.reserve-bar-price .text-muted { font-size: 11px; }
+.reserve-bar .btn { min-height: 44px; padding: 0 24px; font-size: 14px; }
+
+/* Push DetailScreen content above the reserve bar on mobile */
+@media (max-width: 900px) {
+  .detail-shell { padding-bottom: 80px; }
+}
+
+/* On mobile, the in-shell .book-card hides — the reserve bar replaces it. */
+@media (max-width: 900px) {
+  .detail-shell > aside { display: none; }
+}
+
+/* But the booking detail card stays visible in a bottom-sheet when opened. */
+.reserve-sheet {
+  position: fixed; inset: auto 0 0 0;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  border-radius: 18px 18px 0 0;
+  z-index: 250;
+  padding: 12px 20px calc(20px + env(safe-area-inset-bottom));
+  max-height: 92vh;
+  overflow-y: auto;
+  animation: slideInBottom .28s cubic-bezier(.2,.7,.3,1) both;
+}
+.reserve-sheet-handle {
+  width: 36px; height: 4px;
+  background: var(--line-strong); border-radius: 999px;
+  margin: 4px auto 12px;
+}
+
+/* =========================================================
+   Per-screen + global mobile refinements
+   ========================================================= */
+
+/* Forms: prevent iOS focus-zoom by using ≥16px font on inputs at mobile widths. */
+@media (max-width: 768px) {
+  .input, .select, .search-input, textarea, input[type="text"], input[type="email"],
+  input[type="password"], input[type="number"], input[type="date"], input[type="tel"] {
+    font-size: 16px;
+  }
+}
+
+/* Touch-friendly buttons + interactive controls */
+@media (max-width: 768px) {
+  .btn:not(.btn-link) { min-height: 44px; }
+  .btn-sm { min-height: 38px; }     /* compact ghost buttons in headers stay slim */
+  .stepper-btn { width: 40px; height: 40px; }
+  .cal-nav { width: 40px; height: 40px; }
+  .cbox input { width: 18px; height: 18px; }
+  .cbox { padding: 4px 0; min-height: 36px; }
+  .chip { min-height: 36px; padding: 8px 14px; }
+  .sort-btn { min-height: 38px; padding: 8px 14px; }
+  .nav-link { padding: 12px 14px; min-height: 44px; }
+  .save { width: 40px !important; height: 40px !important; }
+}
+
+/* Section/section-head/tabs */
+.tabs-bar { -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
+.tabs-bar button { scroll-snap-align: start; }
+.tabs-bar button:focus-visible { box-shadow: inset 0 -2px 0 var(--accent); }
+
+/* Detail gallery — replace fixed pixel rows with aspect ratios for fluid scaling */
+.detail-gallery > div { aspect-ratio: 4 / 3; }
+.detail-gallery {
+  grid-template-rows: auto;
+}
+@media (max-width: 720px) {
+  .detail-gallery { grid-template-rows: auto; }
+}
+
+/* Reviews: tighten on mobile */
+@media (max-width: 540px) {
+  .review { padding: 18px; }
+  .review-quote { font-size: 17px; }
+}
+
+/* Profile/Booking rows: card-view from md (tablet) instead of 720 */
+@media (max-width: 900px) {
+  .booking-row { grid-template-columns: 1fr; }
+}
+
+/* Bookings table: keep card view starting tablet */
+@media (max-width: 1024px) {
+  .bookings-row { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .bookings-row.bookings-head { display: none; }
+}
+@media (max-width: 480px) {
+  .bookings-row { grid-template-columns: 1fr; }
+}
+
+/* Auth: collapse two-column split a step earlier so iPad portrait stacks. */
+@media (max-width: 1024px) and (max-width: 900px) {} /* no-op anchor for readability */
+@media (max-width: 900px) { .auth { grid-template-columns: 1fr; } .auth-side { min-height: 220px; } }
+@media (max-width: 480px) { .auth-side { display: none; } .auth-form-wrap { padding: 24px 18px; } }
+
+/* Profile stats grid — already 3-col, tighten on phones */
+@media (max-width: 480px) { .profile-stats { grid-template-columns: 1fr; gap: 12px; } }
+
+/* Stats grid — already responsive; widen the breakpoint to md */
+@media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; } }
+@media (max-width: 380px) { .stats-grid { grid-template-columns: 1fr; } }
+.stat-num { font-size: clamp(28px, 4.5vw, 40px); }
+
+/* Section padding-bottom buffer on mobile when scrolling has fixed-bottom UI (reserve bar) */
+@media (max-width: 900px) {
+  .has-reserve-bar { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+}
+
+/* SearchBar — push the desktop 5-col layout out earlier so iPad portrait gets a wrap */
+@media (max-width: 900px) { .search { grid-template-columns: 1fr 1fr; gap: 4px; } .search-submit { grid-column: 1 / -1; padding: 12px 0; justify-content: center; } }
+@media (max-width: 540px) { .search { grid-template-columns: 1fr; } }
+@media (max-width: 900px) {
+  .search-field { border-right: 0; border-bottom: 1px solid var(--line); }
+  .search-field:last-of-type { border-bottom: 0; }
+}
+
+/* Calendar cells — accessible touch targets */
+.cal-cell { min-height: 44px; }
+.cal-grid { gap: 4px; }
+@media (max-width: 480px) {
+  .cal-cell { min-height: 40px; font-size: 14px; }
+  .search-popover { padding: 14px; }
+}
+
+/* Popover: turn search dates/guests popovers into a bottom-sheet on tiny phones.
+   Popover.jsx writes inline `position: fixed; top; left;` — override here with !important
+   so the popover slides up from the bottom instead of clipping at the edges. */
+@media (max-width: 480px) {
+  .search-popover.search-popover-dates,
+  .search-popover.search-popover-guests {
+    position: fixed !important;
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    border-radius: 18px 18px 0 0;
+    box-shadow: var(--shadow-lg);
+    max-height: 88vh;
+    overflow-y: auto;
+    animation: slideInBottom .25s cubic-bezier(.2,.7,.3,1) both;
+  }
+  .search-popover.search-popover-where {
+    max-width: calc(100vw - 24px);
+  }
+}
+
+/* Hotel grid: tighten card minmax on tablet so it doesn't drop to 1 card per row early */
+@media (max-width: 900px) { .hotel-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; } }
+@media (max-width: 480px) { .hotel-grid { grid-template-columns: 1fr; gap: 18px; } }
+
+/* Container side padding scales further on smaller phones */
+@media (max-width: 380px) { .container, .container-wide { padding: 0 16px; } }
+
+/* Form 2-col / 3-col field rows: collapse at xs */
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+@media (max-width: 480px) { .form-row-2 { grid-template-columns: 1fr; } }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3); }
+@media (max-width: 720px) { .form-row-3 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .form-row-3 { grid-template-columns: 1fr; } }
+
+/* Tabs bar fade indicator for horizontal overflow */
+.tabs-scroll {
+  position: relative;
+}
+.tabs-scroll::after {
+  content: ''; position: absolute; top: 0; bottom: 0; right: 0; width: 28px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--bg) 80%);
+}
+@media (min-width: 769px) { .tabs-scroll::after { display: none; } }
+
+/* Reservation receipt sticky offset */
+.receipt-shell {
+  display: grid; grid-template-columns: 1fr 380px; gap: var(--space-6);
+  align-items: start;
+}
+@media (max-width: 1024px) { .receipt-shell { grid-template-columns: 1fr 320px; } }
+@media (max-width: 900px)  { .receipt-shell { grid-template-columns: 1fr; } }
+.receipt-card { position: sticky; top: var(--sticky-top); align-self: start; }
+@media (max-width: 900px) { .receipt-card { position: static; } }
+
+/* HotelMap shell helper */
+.hotel-map-wrap {
+  border-radius: 16px; overflow: hidden; position: relative;
+  background: var(--bg-inset); border: 1px solid var(--line);
+  height: clamp(280px, 50vh, 460px);
+}
+.hotel-map-wrap > div { height: 100% !important; }
+.hotel-map-label {
+  position: absolute; left: 16px; bottom: 16px;
+  padding: 10px 14px; background: var(--bg-elev);
+  border: 1px solid var(--line); border-radius: 12px;
+  font-size: 13px; pointer-events: none; z-index: 500;
+  max-width: calc(100% - 32px);
+}
+
+/* Help/Contact 2-col sidebars — collapse at md */
+.help-shell, .contact-shell {
+  display: grid; gap: var(--space-5); align-items: start;
+}
+.help-shell { grid-template-columns: 240px 1fr; }
+.contact-shell { grid-template-columns: 320px 1fr; }
+@media (max-width: 900px) {
+  .help-shell, .contact-shell { grid-template-columns: 1fr; }
+}
+
+/* Login: image on top on mobile */
+@media (max-width: 900px) {
+  .auth-side { order: -1; aspect-ratio: 16 / 9; min-height: 200px; }
+}
+
+/* AddRooms wizard: form constraints */
+.wizard-shell { max-width: 980px; margin: 0 auto; }
+.wizard-shell .form-row-2 { gap: var(--space-3); }
+
+/* Host property row card */
+.property-row {
+  display: grid;
+  grid-template-columns: 160px 1fr auto;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4);
+}
+@media (max-width: 768px) {
+  .property-row { grid-template-columns: 1fr; }
+  .property-row .stack { flex-direction: row; flex-wrap: wrap; }
+}
+
+/* About / BecomeHost CTA card */
+.cta-card {
+  padding: var(--space-7) var(--space-6);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-5);
+  align-items: center;
+}
+@media (max-width: 768px) {
+  .cta-card { grid-template-columns: 1fr; padding: var(--space-6) var(--space-5); text-align: center; }
+  .cta-card > * { margin-inline: auto; }
+}
+
+/* About story two-column body */
+.about-story-grid {
+  display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--space-7); align-items: start;
+}
+@media (max-width: 900px) { .about-story-grid { grid-template-columns: 1fr; gap: var(--space-5); } }
+
+/* Journal/dest mosaic on the home page */
+.journal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 300px;
+  gap: 16px;
+}
+@media (max-width: 900px) { .journal-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 240px; } }
+@media (max-width: 600px) { .journal-grid { grid-template-columns: 1fr; grid-auto-rows: 260px; } }
+
+/* Prevent horizontal scrollbar from rogue elements */
+html, body { overflow-x: clip; }
+
 
 /* ---------- SearchBar — custom popovers + calendar ---------- */
 .search { position: relative; }

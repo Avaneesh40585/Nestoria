@@ -13,9 +13,9 @@ export default function HelpScreen() {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: 48 }} className="list-shell">
+      <div className="help-shell">
         {/* Section nav */}
-        <aside className="filters" style={{ alignSelf: 'start', position: 'sticky', top: 96 }}>
+        <aside className="filters" style={{ alignSelf: 'start' }}>
           <div className="filter-block" style={{ paddingTop: 0 }}>
             <div className="filter-title">Browse by topic</div>
             <div className="stack" style={{ '--gap': '8px' }}>

@@ -71,10 +71,10 @@ export default function ReservationScreen() {
 
       <h1 className="h-1 mb-6">{b.hotel_name}</h1>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 36, alignItems: 'start' }}>
-        <main className="card-flat" style={{ padding: 32 }}>
-          <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
-            <div style={{ width: 140, aspectRatio: '4/3', borderRadius: 12, overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
+      <div className="receipt-shell">
+        <main className="card-flat" style={{ padding: 'var(--space-5)' }}>
+          <div style={{ display: 'flex', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
+            <div style={{ width: 'clamp(120px, 30vw, 160px)', aspectRatio: '4/3', borderRadius: 12, overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
               <Photo hue={b.hotel_hue} src={b.hotel_hero} alt={b.hotel_name} />
             </div>
             <div>
@@ -85,7 +85,7 @@ export default function ReservationScreen() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20, padding: '20px 0', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+          <div className="facts-grid-2">
             <div>
               <div className="eyebrow mb-2">Check-in</div>
               <div className="serif" style={{ fontSize: 18 }}>{fmtDate(b.checkin_date)}</div>
@@ -141,7 +141,7 @@ export default function ReservationScreen() {
           </div>
         </main>
 
-        <aside className="card-flat" style={{ padding: 28, position: 'sticky', top: 96 }}>
+        <aside className="card-flat receipt-card" style={{ padding: 'var(--space-5)' }}>
           <div className="eyebrow mb-3">— Receipt</div>
           <div className="summary-row"><span className="text-muted">Subtotal</span><span className="text-mono">₹{Number(b.base_amount).toLocaleString()}</span></div>
           <div className="summary-row"><span className="text-muted">Taxes</span><span className="text-mono">₹{Number(b.tax_amount).toLocaleString()}</span></div>

@@ -160,12 +160,12 @@ export default function BookingScreen() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 36, alignItems: 'start' }}>
-        <main className="card-flat" style={{ padding: 36 }}>
+      <div className="shell-aside-right">
+        <main className="card-flat" style={{ padding: 'var(--space-5)' }}>
           {step === 0 && (
             <div className="fade-up">
               <h2 className="h-3 mb-4">Who's staying?</h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className="form-row-2">
                 <div className="field"><label className="field-label">Full name</label>
                   <input className="input" value={form.fullName} onChange={(e) => upd('fullName', e.target.value)} /></div>
                 <div className="field"><label className="field-label">Email</label>
@@ -210,7 +210,7 @@ export default function BookingScreen() {
                   <div className="field"><label className="field-label">Card number</label>
                     <input className="input text-mono" placeholder="1234 5678 9012 3456" inputMode="numeric"
                            value={form.card} onChange={(e) => upd('card', formatCardNumber(e.target.value))} /></div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+                  <div className="form-row-2" style={{ marginTop: 16 }}>
                     <div className="field"><label className="field-label">Expiry</label>
                       <input className="input text-mono" placeholder="MM / YY" inputMode="numeric"
                              value={form.expiry} onChange={(e) => upd('expiry', formatExpiry(e.target.value))} /></div>

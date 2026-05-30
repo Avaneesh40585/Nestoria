@@ -174,7 +174,7 @@ export default function HomeScreen() {
               <h2 className="h-1">Field notes from the road.</h2>
             </div>
           </div>
-          <div className="dests-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: '300px' }}>
+          <div className="journal-grid">
             {JOURNAL.map((j) => (
               <Link key={j.slug} to={`/journal/${j.slug}`} className="dest-card" style={{ cursor: 'pointer' }}>
                 <Photo hue={j.hue} src={j.src} alt={j.title} />
@@ -194,7 +194,7 @@ export default function HomeScreen() {
       {/* HOST CTA */}
       <section className="section">
         <div className="container-wide">
-          <div className="card" style={{ padding: '64px 56px', display: 'grid', gridTemplateColumns: '1fr auto', gap: 32, alignItems: 'center' }}>
+          <div className="card cta-card">
             <div>
               <div className="eyebrow mb-3">— For Hosts</div>
               <h2 className="h-1" style={{ maxWidth: 580 }}>If you've built something quiet and good, we'd like to meet you.</h2>

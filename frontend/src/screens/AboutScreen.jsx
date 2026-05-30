@@ -88,7 +88,7 @@ export default function AboutScreen() {
               <h2 className="h-1">Three things we won\'t compromise on.</h2>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }} className="kpi-grid">
+          <div className="grid-features-3">
             {VALUES.map((v) => (
               <div className="card-flat" key={v.title} style={{ padding: 28 }}>
                 <span style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-soft)', color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -105,7 +105,7 @@ export default function AboutScreen() {
       {/* STORY */}
       <section className="section" style={{ paddingTop: 0 }}>
         <div className="container-wide">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 64, alignItems: 'start' }}>
+          <div className="about-story-grid">
             <div>
               <div className="eyebrow mb-3">— Our story</div>
               <h2 className="h-1">A booking site that reads like a journal.</h2>
@@ -150,7 +150,7 @@ export default function AboutScreen() {
       {/* CTA */}
       <section className="section">
         <div className="container-wide">
-          <div className="card" style={{ padding: '64px 56px', display: 'grid', gridTemplateColumns: '1fr auto', gap: 32, alignItems: 'center' }}>
+          <div className="card cta-card">
             <div>
               <div className="eyebrow mb-3">— For the curious</div>
               <h2 className="h-1" style={{ maxWidth: 580 }}>Start where the writing is best.</h2>

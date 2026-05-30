@@ -110,5 +110,7 @@ export default function HotelMap({
     map.setView(ll, Math.max(map.getZoom(), 13));
   }, [lat, lng, interactive, label]);
 
-  return <div ref={ref} style={{ width: '100%', height, borderRadius: 12, overflow: 'hidden' }} />;
+  // Numeric `height` keeps the current API; pass a CSS string for fluid sizing.
+  const cssHeight = typeof height === 'number' ? `${height}px` : height;
+  return <div ref={ref} style={{ width: '100%', height: cssHeight, borderRadius: 12, overflow: 'hidden' }} />;
 }
