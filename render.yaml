@@ -63,8 +63,7 @@ databases:
     databaseName: nestoria
     plan: free
     region: oregon
-    # After provisioning, run these in order from the Render PSQL shell:
-    #   \i database/001_schema.sql
-    #   \i database/002_triggers.sql
-    #   \i database/004_seed.sql
+    # Schema + seed are loaded automatically the first time the backend boots
+    # (see backend/init-db.js, called from `npm start`). The check is idempotent
+    # — subsequent deploys notice the `hotels` table and skip.
     # database/003_storage.sql runs in the Supabase SQL editor, not here.

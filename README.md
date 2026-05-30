@@ -24,7 +24,6 @@
 
 ## Table of contents
 
-- [What's new](#whats-new)
 - [Why Nestoria](#why-nestoria)
 - [What it does at a glance](#what-it-does-at-a-glance)
 - [Tech stack](#tech-stack)
@@ -43,27 +42,6 @@
 - [Contributing](#contributing)
 - [Credits](#credits)
 - [License](#license)
-
----
-
-## What's new
-
-Recent rounds of polish — captured here so the docs match the code:
-
-- **Server-side favourites** — saved hotels persist per (user_id, role) in `saved_hotels`; works for customers and hosts. (`database/006_saved_hotels.sql`)
-- **Reservation detail screen** at `/reservations/:id` — booking ref, dates, receipt, cancel-from-here.
-- **Cancelled stays remain visible** in the profile under a new Cancelled tab — no more silent drops.
-- **Payment terminal simulation** — masked card / expiry / CVV inputs and an authorising → contacting-bank → approved overlay (UPI variant too).
-- **Real hotel map** — `latitude`/`longitude` on `hotels` (`database/007_hotel_coords.sql`) rendered with **Leaflet + OpenStreetMap tiles** on the customer detail screen, and an interactive click-to-drop picker for hosts during property creation.
-- **Per-room name + special amenities** — rooms have a display `name` and a free-text `special_amenities` field (`database/008_room_extras.sql`); shown as chips on the public detail screen.
-- **Host onboarding gate** — hosts must fill `business_name` + `phone` before listing a property; both the wizard and the backend enforce it. Standard public header now applies to hosts too.
-- **Search redesign** — type-only Where popover, validation on empty submit, real interactive date-range calendar, guest stepper.
-- **Footer "Featured stays" / "Top rated"** links now actually sort the explore page.
-- **Price stepper** in the filter rail replaces the old number inputs + presets.
-- **Year founded** corrected to 2024 across all pages.
-- **Badge rename** — `Editor's pick` → `Hand-picked` to disambiguate from the editorial section heading.
-- **Hotel-verified imagery via Unsplash Search** — `scripts/fetch-hotel-photos.js` queries the Unsplash Search API for each property's theme (heritage haveli, beach villa, sandstone fort, etc.), keeps only photos whose alt description contains hotel/room/interior keywords, and writes `scripts/image-manifest.js` with the alt + photographer in a trailing comment so accuracy is auditable. `scripts/upload-images.js` then pushes the bytes to Supabase and regenerates `database/005_seed_images.sql`. Requires a free `UNSPLASH_ACCESS_KEY` in `backend/.env` (see [docs/SETUP.md](docs/SETUP.md)). Detail-screen gallery shows 4 unlabelled photos per property.
-- **Login UX** — backend returns a distinct 401 for Google-only accounts (`"This account uses Google sign-in"`). The login form appends a role-toggle hint when the generic "Invalid credentials" comes back. New `scripts/check-seed-passwords.js` verifies every seeded host + customer can log in with `password123`.
 
 ---
 
@@ -224,10 +202,11 @@ Then follow the detailed walkthrough in [**docs/DEPLOYMENT.md**](docs/DEPLOYMENT
 1. Create accounts at Render and Supabase (free, no card)
 2. New Render Blueprint from your fork → Render reads `render.yaml`
 3. Set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `GOOGLE_CLIENT_ID` in the Render dashboard
-4. `psql` into the Render database and load `001_schema.sql` + `002_triggers.sql`
-5. Visit `https://nestoria-frontend.onrender.com`
+4. Visit `https://nestoria-frontend.onrender.com`
 
-Total time: ~20 minutes.
+The backend self-initialises on first boot — `npm start` runs [`backend/init-db.js`](backend/init-db.js), which notices the empty Postgres and loads the schema + seed (8 hotels, 50 customers, real Unsplash photos). Subsequent deploys see the populated database and skip. When you're ready to take real bookings, wipe the demo data with `scripts/wipe-seed.js --yes` — see [docs/DEPLOYMENT.md → 5a](docs/DEPLOYMENT.md#5a-removing-the-seed).
+
+Total time: ~10 minutes.
 
 ---
 
@@ -409,10 +388,12 @@ Nestoria/
 │   ├── fetch-hotel-photos.js    Queries Unsplash Search API → writes image-manifest.js
 │   ├── upload-images.js         Downloads from Unsplash → uploads to Supabase → writes 005_seed_images.sql
 │   ├── print-manifest-urls.js   Read-only spot-check helper
-│   └── check-seed-passwords.js  bcrypt-verifies every seeded password loads as "password123"
+│   ├── check-seed-passwords.js  bcrypt-verifies every seeded password loads as "password123"
+│   └── wipe-seed.js             Removes the 8 demo hotels + 50 customers + 3 hosts + matching Supabase files
 │
 ├── backend/
 │   ├── server.js                Thin wiring layer (~30 LOC)
+│   ├── init-db.js               Idempotent first-boot schema + seed loader (called by `npm start`)
 │   ├── config/                  db.js · supabase.js · google.js
 │   ├── lib/                     http · jwt · userRepo
 │   ├── middleware/              auth · error
@@ -506,6 +487,7 @@ Run from the repo root with `NODE_PATH=backend/node_modules` so they can resolve
 | `node scripts/upload-images.js` | Downloads each URL in the manifest, uploads to the Supabase `hotel-images` bucket (`upsert: true`), writes `database/005_seed_images.sql` |
 | `node scripts/print-manifest-urls.js` | Prints every URL in the manifest so you can spot-check in a browser. Read-only. |
 | `node scripts/check-seed-passwords.js` | Runs `bcrypt.compareSync('password123', hash)` against every seeded host + customer and prints PASS / FAIL / SKIP (Google-only). Exits non-zero on any failure. |
+| `node scripts/wipe-seed.js --dry-run` / `--yes` | Removes the 8 seed hotels, 50 demo customers, 3 demo hosts, their 80 bookings, and the matching Supabase Storage objects (`hotels/<slug>/`, `rooms/<slug>/`). Run before going live to clear the public `password123` accounts. See [docs/DEPLOYMENT.md → 5a](docs/DEPLOYMENT.md#5a-removing-the-seed). |
 
 ---
 
