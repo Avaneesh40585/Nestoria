@@ -376,7 +376,9 @@ openssl rand -base64 48
 
 Paste the output as `JWT_SECRET=…`.
 
-Leave `SUPABASE_*` and `GOOGLE_CLIENT_ID` blank for now — both are optional. See the [optional sections](#optional-supabase-storage-for-image-uploads) below if you want them.
+Leave `SUPABASE_*`, `GOOGLE_CLIENT_ID`, and `UNSPLASH_ACCESS_KEY` blank for now — all three are optional. See the [optional sections](#optional-supabase-storage-for-image-uploads) below if you want them.
+
+> `UNSPLASH_ACCESS_KEY` is only needed if you want to **re-curate** the demo imagery via `scripts/fetch-hotel-photos.js`. The running app does not call Unsplash — it serves the photos from Supabase. Sign up free at <https://unsplash.com/developers> (no card, ~2 min).
 
 Install dependencies:
 

@@ -8,7 +8,8 @@ export const JOURNAL_POSTS = [
     dest: 'Coorg',
     read: '6 min',
     hue: 'forest',
-    src: 'https://images.unsplash.com/photo-1518684079-3c830dcef090?w=1600&q=80&auto=format&fit=crop',
+    // a lush green forest hillside — by PROJETO CAFÉ GATO-MOURISCO (Unsplash: coffee plantation mist)
+    src: 'https://images.unsplash.com/photo-1646438596321-5cded1891b62?w=1600&q=80&auto=format&fit=crop',
     author: 'Riya Bhandari',
     date: 'May 2026',
     excerpt: 'A week in the Western Ghats when the rains move sideways and the coffee tastes greener.',
@@ -27,6 +28,7 @@ export const JOURNAL_POSTS = [
     dest: 'Goa',
     read: '11 min',
     hue: 'ocean',
+    // blue body of water under sunny sky — by alexey turenkov (Unsplash: goa beach)
     src: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=1600&q=80&auto=format&fit=crop',
     author: 'Marcus Lee',
     date: 'April 2026',
@@ -47,7 +49,8 @@ export const JOURNAL_POSTS = [
     dest: 'Udaipur',
     read: '8 min',
     hue: 'sand',
-    src: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?w=1600&q=80&auto=format&fit=crop',
+    // a large white palace sitting on top of a lake — by Subhashis Das (Unsplash: udaipur lake palace)
+    src: 'https://images.unsplash.com/photo-1633702738734-443da2c18f3c?w=1600&q=80&auto=format&fit=crop',
     author: 'Anaya Mehra',
     date: 'March 2026',
     excerpt: 'Lake suites, fort cells, palace balconies. A short list of rooms that earn their description.',
@@ -70,7 +73,8 @@ export const JOURNAL_POSTS = [
     dest: 'Auroville',
     read: '9 min',
     hue: 'dusk',
-    src: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=1600&q=80&auto=format&fit=crop',
+    // golden dome rising from a lush green field — by uday samudrala (Unsplash: auroville earth architecture / Matrimandir)
+    src: 'https://images.unsplash.com/photo-1674279967369-8dacf24d9b69?w=1600&q=80&auto=format&fit=crop',
     author: 'Lucas Bernard',
     date: 'February 2026',
     excerpt: 'Notes from a community where the walls are pressed from the soil they stand on.',
@@ -89,7 +93,8 @@ export const JOURNAL_POSTS = [
     dest: 'Jaisalmer',
     read: '7 min',
     hue: 'sand',
-    src: 'https://images.unsplash.com/photo-1599050751795-6cdaafbc2319?w=1600&q=80&auto=format&fit=crop',
+    // brown stone fort castle low angle photo — by Josephine Thomas (Unsplash: jaisalmer fort sandstone)
+    src: 'https://images.unsplash.com/photo-1544616751-eea58efccec4?w=1600&q=80&auto=format&fit=crop',
     author: 'James Whitford',
     date: 'January 2026',
     excerpt: 'Jaisalmer Fort still has 3,000 residents inside its walls. Staying there is a different kind of trip.',
@@ -107,7 +112,8 @@ export const JOURNAL_POSTS = [
     dest: 'Munnar',
     read: '5 min',
     hue: 'forest',
-    src: 'https://images.unsplash.com/photo-1597211833712-5e41faa202ea?w=1600&q=80&auto=format&fit=crop',
+    // emerald tea slopes under cloud — by Avin CP (Unsplash: munnar tea estate)
+    src: 'https://images.unsplash.com/photo-1591354565616-16e9337d2d61?w=1600&q=80&auto=format&fit=crop',
     author: 'Devika Nair',
     date: 'December 2025',
     excerpt: 'A short essay on what tea estates do to your sense of time.',

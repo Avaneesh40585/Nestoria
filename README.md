@@ -1,4 +1,10 @@
-<h1 align="center">Nestoria</h1>
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)"  srcset="docs/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/logo-light.png">
+    <img alt="Nestoria" src="docs/logo-light.png" width="320">
+  </picture>
+</h1>
 
 <p align="center">
   <strong>Stays for the quietly curious.</strong><br/>
@@ -18,6 +24,7 @@
 
 ## Table of contents
 
+- [What's new](#whats-new)
 - [Why Nestoria](#why-nestoria)
 - [What it does at a glance](#what-it-does-at-a-glance)
 - [Tech stack](#tech-stack)
@@ -55,7 +62,7 @@ Recent rounds of polish — captured here so the docs match the code:
 - **Price stepper** in the filter rail replaces the old number inputs + presets.
 - **Year founded** corrected to 2024 across all pages.
 - **Badge rename** — `Editor's pick` → `Hand-picked` to disambiguate from the editorial section heading.
-- **Re-curated imagery** — `scripts/image-manifest.js` is the single source of truth for the 58 demo photos; rerun `scripts/upload-images.js` to push fresh images to Supabase and regenerate `database/005_seed_images.sql`. Detail-screen gallery no longer labels its 4 slots — each property shows its 4 best shots.
+- **Hotel-verified imagery via Unsplash Search** — `scripts/fetch-hotel-photos.js` queries the Unsplash Search API for each property's theme (heritage haveli, beach villa, sandstone fort, etc.), keeps only photos whose alt description contains hotel/room/interior keywords, and writes `scripts/image-manifest.js` with the alt + photographer in a trailing comment so accuracy is auditable. `scripts/upload-images.js` then pushes the bytes to Supabase and regenerates `database/005_seed_images.sql`. Requires a free `UNSPLASH_ACCESS_KEY` in `backend/.env` (see [docs/SETUP.md](docs/SETUP.md)). Detail-screen gallery shows 4 unlabelled photos per property.
 - **Login UX** — backend returns a distinct 401 for Google-only accounts (`"This account uses Google sign-in"`). The login form appends a role-toggle hint when the generic "Invalid credentials" comes back. New `scripts/check-seed-passwords.js` verifies every seeded host + customer can log in with `password123`.
 
 ---
@@ -242,6 +249,7 @@ Both `backend/.env.example` and `frontend/.env.example` are committed. Copy each
 | `SUPABASE_SERVICE_ROLE_KEY` | optional | — | service role, NOT anon |
 | `SUPABASE_BUCKET_NAME` | optional | `hotel-images` |  |
 | `GOOGLE_CLIENT_ID` | optional | — | needed only for Google sign-in |
+| `UNSPLASH_ACCESS_KEY` | optional | — | needed only to **re-curate** the demo imagery via `scripts/fetch-hotel-photos.js`; the running app does not call Unsplash |
 
 ### Frontend (`frontend/.env`)
 
@@ -272,13 +280,20 @@ Mode is toggled via a sliding pill in the header. Accent is picked from a floati
 
 ### Search and filters
 
-The hotels list (`/hotels`) combines server-side and client-side filtering:
+The home-page SearchBar is a self-contained pill with three editorial popovers (all portal-rendered above the page so they never get clipped):
 
-- Server filters: `location` (matches name/city/region), `min_price`, `max_price`, `min_rating`, `region`, `sort`
-- Client filters (refining the response): region multi-select, amenity multi-select
-- Sort options: Featured (Bayesian score), Rating, Price ↑, Price ↓
+- **Where** — text input with a type-only suggestion list pulled from `/api/hotels/destinations`. Empty submit is blocked with an inline `var(--danger)` hint.
+- **Dates** — custom two-month range calendar (built on `date-fns`), past days greyed out, range fill + endpoint pills in the accent colour.
+- **Guests** — popover wrapping the shared `Stepper` component.
 
-The home page surfaces five popular city chips (Udaipur, Goa, Coorg, Munnar, Auroville) that pre-fill the search bar.
+The `/hotels` page combines server-side and client-side filtering:
+
+- Server filters: `location`, `min_price`, `max_price`, `min_rating`, `sort`
+- Client filters: region multi-select, amenity multi-select
+- Sort options: Featured (Bayesian score), Rating, Price ↑, Price ↓ — synced both ways with the `?sort=` URL param, so footer "Top rated" / "Featured stays" links land on the right pill
+- Price range uses a min/max `Stepper` pair (±₹500), no more chip presets
+
+The home page also surfaces five popular city chips (Udaipur, Goa, Coorg, Munnar, Auroville) that pre-fill the search bar.
 
 ### Hotel detail with 5 tabs
 
@@ -288,17 +303,25 @@ Each hotel has its own `/hotel/:slug` route with a tabbed body and a sticky book
 2. **Amenities** — grid of every amenity with the matching icon
 3. **Rooms** — every room listed with type, view, beds, size, price, and a **Reserve** button that deep-links into the booking wizard
 4. **Reviews** — the latest 20 reviews with avatar initials and dates; aggregate rating up top
-5. **Location** — abstract SVG map with a pin (real maps integration is on the roadmap)
+5. **Location** — Leaflet map with an OSM tile layer, centred on the property's real `latitude` / `longitude` (seeded in `database/007_hotel_coords.sql`); "Open in OpenStreetMap" link for full-page view
 
-The sidebar mirrors the design's `book-card`: live nights × rooms calculation, 18% GST line, and total. Picking a room scrolls the sidebar's reserve action to that room's price.
+The sidebar mirrors the design's `book-card`: live nights × rooms calculation, 18% GST line, and total. Picking a room scrolls the sidebar's reserve action to that room's price. The Save heart and Reserve button route anonymous users to `/login?next=<current-path>` and bounce them back after sign-in; host-role users get a friendly "Hosts can't book on Nestoria" message instead of a silent failure.
 
 ### 3-step booking wizard
 
 1. **Guest details** — name, email, phone, arrival time, special notes (pre-filled from the logged-in user)
-2. **Payment** — Card / UPI / Pay-at-hotel chips. Form fields show conditionally per method. (Payment is currently a stub; integrating a real PSP is on the [roadmap](#roadmap).)
-3. **Confirmation** — checkmark, reservation reference (`NSTRA-000123`), one-click back to profile or home
+2. **Payment** — Card / UPI / Pay-at-hotel chips. Card + expiry + CVV inputs are masked and digit-formatted. Confirming Card or UPI opens a portal-mounted **payment terminal overlay** that walks through `Authorising → Contacting bank → Approved` (UPI variant: `Generating collect request → Awaiting approval → Confirmed`) before triggering the actual booking mutation. Pay-at-hotel skips the terminal. Integrating a real PSP is still on the [roadmap](#roadmap) — the simulation gives the editorial feel without one.
+3. **Confirmation** — checkmark, reservation reference (`NSTRA-000123`), one-click "View reservation" → `/reservations/:id` or back to home
 
 The booking POSTs to `/api/bookings`, which locks the room row, checks for date overlap, and inserts atomically. Concurrent attempts to book the same room for overlapping dates return `409 Conflict`.
+
+### Reservation detail screen
+
+Each booking has its own `/reservations/:id` page — status pill, ref code, hotel hero + room summary, dates + guests grid, property phone, and a receipt sidebar with subtotal / taxes / total / payment status. Cancel from here uses the same `PUT /api/bookings/:id/cancel` endpoint as the profile list. Profile's per-row View button and the booking confirmation's "View reservation" CTA both land here.
+
+### Server-side favourites (Save heart)
+
+Saved hotels persist per `(user_id, role)` in the `saved_hotels` table — the heart works for both customer and host accounts, and the list survives device switches. The `useSavedHotels` hook drives every heart on the site through TanStack Query with optimistic updates. Anonymous clicks bounce to login with a `next` param so the user lands back on the page they were saving from.
 
 ### Reviews with Bayesian rating
 
@@ -342,17 +365,17 @@ KPIs (revenue, bookings, occupancy, rating) are all computed server-side in one 
 
 ### AddRooms 3-step wizard
 
-`/host/add-rooms` walks new hosts through listing a property:
+`/host/add-rooms` walks hosts through listing a property:
 
-1. **Basics** — name, URL slug, region, city, description, mood/colour
-2. **Address & amenities** — full address, reception phone, check-in/out times, multi-select amenities
-3. **Rooms** — inline add/edit/delete with type, view, beds, size, price, mood; hero image upload to Supabase Storage
+1. **Basics** — name, URL slug, region, city, description, mood/colour (now a working swatch picker)
+2. **Address & amenities** — full address, reception phone, check-in/out times, multi-select amenities, **interactive Leaflet map** for the host to click-drop and drag a pin (writes the property's `latitude` / `longitude`)
+3. **Rooms** — inline add/edit/delete with **name** + type + view + beds + size + price + mood + **special amenities** (comma-separated chips); hero image upload to Supabase Storage. Publish button is disabled until at least one room exists.
 
-Each form is validated by a Zod schema (`lib/schemas.js`) and submitted with react-hook-form. Failed validations show inline errors. The hotel is created at the end of step 2 so step 3's room creation has a parent to attach to.
+Each form is validated by a Zod schema (`lib/schemas.js`) and submitted with react-hook-form. Failed validations show inline errors on every field, including region/city. The wizard refuses to render at all until the host has filled `business_name` + `phone` on their profile (both UI and backend enforce this).
 
 ### Cancellable bookings
 
-Customers can cancel any `pending` or `confirmed` booking from their profile. Cancellations are soft — the row stays for audit history, just with `status = 'cancelled'`. The cancelled rows are excluded from the room availability check, so the dates free up immediately.
+Customers can cancel any `pending` or `confirmed` booking from either the profile list or the `/reservations/:id` screen. Cancellations are soft — the row stays for audit history, just with `status = 'cancelled'`, and shows up under a dedicated **Cancelled** tab in the profile. The cancelled rows are excluded from the room availability check, so the dates free up immediately.
 
 ---
 
@@ -365,14 +388,28 @@ Nestoria/
 ├── docs/
 │   ├── ARCHITECTURE.md          How the pieces fit together
 │   ├── API.md                   Endpoint reference
-│   ├── DATABASE.md              Schema, triggers, seed data
-│   └── DEPLOYMENT.md            End-to-end Render walkthrough
+│   ├── DATABASE.md              Schema, triggers, seed data, migrations catalogue
+│   ├── DEPLOYMENT.md            End-to-end Render walkthrough
+│   ├── SETUP.md                 Hand-held local install (every prerequisite)
+│   ├── logo-light.png           Wordmark for GitHub light mode
+│   └── logo-dark.png            Wordmark for GitHub dark mode
 │
 ├── database/
 │   ├── 001_schema.sql           Tables, indexes, updated_at trigger
 │   ├── 002_triggers.sql         Bayesian rating recompute
 │   ├── 003_storage.sql          Supabase Storage RLS (run on Supabase, not Postgres)
-│   └── 004_seed.sql             8 hotels, 18 rooms, 50 customers, ~100 bookings, ~220 reviews
+│   ├── 004_seed.sql             8 hotels, 18 rooms, 50 customers, ~100 bookings, ~220 reviews
+│   ├── 005_seed_images.sql      Auto-generated by scripts/upload-images.js (hero, gallery, room images)
+│   ├── 006_saved_hotels.sql     `saved_hotels` table for server-side favourites
+│   ├── 007_hotel_coords.sql     `hotels.latitude` / `longitude` + seed coords
+│   └── 008_room_extras.sql      `rooms.name` + `rooms.special_amenities`
+│
+├── scripts/
+│   ├── image-manifest.js        Auto-generated photo manifest (8 hotels × 5 + 18 rooms)
+│   ├── fetch-hotel-photos.js    Queries Unsplash Search API → writes image-manifest.js
+│   ├── upload-images.js         Downloads from Unsplash → uploads to Supabase → writes 005_seed_images.sql
+│   ├── print-manifest-urls.js   Read-only spot-check helper
+│   └── check-seed-passwords.js  bcrypt-verifies every seeded password loads as "password123"
 │
 ├── backend/
 │   ├── server.js                Thin wiring layer (~30 LOC)
@@ -387,11 +424,11 @@ Nestoria/
     └── src/
         ├── main.jsx             QueryClient + GoogleOAuth + AuthProvider mount
         ├── App.jsx              Router + Header + Footer + TweaksPanel
-        ├── styles/index.css     Editorial design system (~900 LOC, CSS variables)
-        ├── components/          Header · Footer · SearchBar · HotelCard · Icon · Photo · Stepper · TweaksPanel · ThemeToggle · ProtectedRoute
-        ├── screens/             Home · Hotels · Detail · Booking · Login · Profile · Host · AddRooms · NotFound
-        ├── hooks/               useTheme · useTweaks
-        ├── lib/                 api · queryClient · schemas
+        ├── styles/index.css     Editorial design system (~1 kLOC, CSS variables)
+        ├── components/          Header · Footer · SearchBar · HotelCard · Icon · Photo · Stepper · TweaksPanel · ThemeToggle · ProtectedRoute · Popover · HotelMap
+        ├── screens/             Home · Hotels · Detail · Booking · Reservation · Login · Profile · Host · AddRooms · About · Journal · JournalPost · Help · Contact · Legal · BecomeHost · NotFound
+        ├── hooks/               useTheme · useTweaks · useSavedHotels
+        ├── lib/                 api · queryClient · schemas · content (static editorial copy)
         └── context/             AuthContext
 ```
 
@@ -415,11 +452,11 @@ The frontend stores three keys in `localStorage`:
 | key | purpose |
 |---|---|
 | `nestoria-token` | JWT issued by `/api/auth/*` endpoints |
-| `nestoria-user`  | Cached user object (id, email, full_name, role, …) |
+| `nestoria-user`  | Cached user object (id, email, full_name, role, `onboarded`, …) |
 | `nestoria-theme` | `light` or `dark` |
 | `nestoria-tweaks`| `{ "accent": "terracotta" \| "forest" \| "ink" \| "saffron" \| "plum" }` |
 
-No cookies. No third-party scripts. No localStorage on first visit until you sign in or change a setting.
+Favourites used to live in localStorage too — they're now server-side, persisted to the `saved_hotels` table per `(user_id, role)`. No cookies. No third-party scripts. No localStorage on first visit until you sign in or change a setting.
 
 ---
 
@@ -459,6 +496,17 @@ If you self-host with no Supabase + no Google sign-in, the only network calls le
 | `npm run build` | Production build to `./build` |
 | `npm run preview` | Preview the production build locally |
 
+### One-shot scripts (`scripts/`)
+
+Run from the repo root with `NODE_PATH=backend/node_modules` so they can resolve `dotenv`, `pg`, `@supabase/supabase-js`, etc. from the backend's modules.
+
+| script | what |
+|---|---|
+| `node scripts/fetch-hotel-photos.js` | Hits the Unsplash Search API (needs `UNSPLASH_ACCESS_KEY` in `backend/.env`), filters results by hotel/room/interior keywords, rewrites `scripts/image-manifest.js` with the alt description + photographer annotated in every entry |
+| `node scripts/upload-images.js` | Downloads each URL in the manifest, uploads to the Supabase `hotel-images` bucket (`upsert: true`), writes `database/005_seed_images.sql` |
+| `node scripts/print-manifest-urls.js` | Prints every URL in the manifest so you can spot-check in a browser. Read-only. |
+| `node scripts/check-seed-passwords.js` | Runs `bcrypt.compareSync('password123', hash)` against every seeded host + customer and prints PASS / FAIL / SKIP (Google-only). Exits non-zero on any failure. |
+
 ---
 
 ## Troubleshooting
@@ -470,7 +518,9 @@ If you self-host with no Supabase + no Google sign-in, the only network calls le
 | **Backend boots but every API call returns 500** | Database not initialised. Run `psql -f database/001_schema.sql` and `002_triggers.sql`, or load them through pgAdmin's Query Tool. |
 | **`ECONNREFUSED` on backend boot** | Postgres isn't running, or `DB_HOST`/`DB_PORT` are wrong. For Render, ensure `DB_SSL=true`. |
 | **`CORS error: blocked by Access-Control-Allow-Origin`** | `CORS_ORIGIN` on the backend doesn't match the frontend URL exactly. Trailing slashes matter. |
-| **`POST /api/auth/login` returns 401 "Invalid credentials"** | Make sure you registered with the same `role` you're trying to log in with. Customers and hosts are separate tables. |
+| **`POST /api/auth/login` returns 401 "Invalid credentials"** | The most common cause is the **role toggle** on the sign-in screen — customer emails need "I'm travelling", host emails need "I'm hosting". The login form now appends a hint reminding you. Run `node scripts/check-seed-passwords.js` to confirm the hashes themselves are good. |
+| **`POST /api/auth/login` returns "This account uses Google sign-in"** | The account was created via Google, so it has no password set. Use the **Continue with Google** button. |
+| **Host signed in but the "Add property" page just shows "Finish your host profile"** | The host must fill `business_name` + `phone` on `/host/profile` before listing. Both the wizard and the backend `POST /api/hotels` enforce this. |
 | **Google sign-in popup closes immediately with "origin not allowed"** | Add your frontend URL to the OAuth Client's **Authorized JavaScript origins** in Google Cloud Console. |
 | **`/api/upload/*` returns 503 "Image upload is not configured"** | Set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_BUCKET_NAME` in `backend/.env`. |
 | **Booking POST returns 409 "Room is already booked for those dates"** | Another booking overlaps. Pick different dates, or cancel the conflicting one as that customer. |
@@ -486,9 +536,8 @@ If you self-host with no Supabase + no Google sign-in, the only network calls le
 
 Things that aren't built but would be welcome contributions:
 
-- **Real payments** — Razorpay or Stripe integration for the booking wizard
+- **Real payments** — Razorpay or Stripe in place of the simulated payment terminal in the booking wizard
 - **Email notifications** — booking confirmations, host new-booking alerts (Resend or SES)
-- **Real maps** — Mapbox or MapLibre in place of the placeholder SVG on the Detail screen's Location tab
 - **Host inbox** — message threads between guests and hosts
 - **Calendar view** for the host's bookings tab
 - **Internationalisation** — currently INR-only and English-only
